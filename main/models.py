@@ -36,7 +36,9 @@ class Product(models.Model):
 
 class ProductsReport(models.Model):
     sap_code = models.CharField(max_length=20)
+    sap_code_name = models.CharField(max_length=30)
     category_sap_code = models.CharField(max_length=20)
+    category_sap_code_name = models.CharField(max_length=40)
     main_reason = models.ForeignKey('Reason', on_delete=models.SET_NULL, null=True, blank=True)
     manager_reason = models.ForeignKey('ManagerReason', on_delete=models.SET_NULL, null=True, blank=True)
     fee = models.IntegerField(null=True, blank=True)

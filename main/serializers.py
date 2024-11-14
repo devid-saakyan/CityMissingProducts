@@ -23,10 +23,15 @@ class DeleteManagerReasonSerializer(serializers.ModelSerializer):
 
 
 class ProductsReportSerializer(serializers.ModelSerializer):
-    sap_code_name = serializers.CharField(write_only=True, required=False)
+    main_reason = serializers.StringRelatedField()
+    manager_reason = serializers.StringRelatedField()
     category_name = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = ProductsReport
-        fields = ['sap_code', 'sap_code_name', 'category_sap_code', 'category_name',
-                  'main_reason', 'count', 'quantity', 'unit_price', 'branch', 'image']
+        fields = ['id', 'sap_code', 'sap_code_name', 'category_sap_code', 'category_sap_code_name', 'category_name',
+                  'fee', 'manager_reason', 'main_reason', 'count', 'quantity', 'unit_price', 'branch', 'image', 'resolved']
+
+
+class ProductReportIdSerializer(serializers.Serializer):
+    id = serializers.IntegerField()

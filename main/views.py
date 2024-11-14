@@ -97,6 +97,7 @@ class ProductReportView(generics.ListAPIView):
     def get(self, request):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
+        print(serializer)
         return Response({'success': True,
                          'data': serializer.data})
 
@@ -113,6 +114,31 @@ class ProductReportByBranchView(generics.ListAPIView):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response({'success': True, 'data': serializer.data})
+
+
+class CombinedProductReportByBranchView(generics.GenericAPIView):
+    serializer_class = ProductsReportSerializer
+
+    def get(self, request, *args, **kwargs):
+        branch_name = self.kwargs.get('branch_name')
+
+        product_reports = ProductsReport.objects.filter(branch=branch_name)
+        serializer = self.get_serializer(product_reports, many=True)
+
+        aggregation = ProductsReport.objects.filter(branch=branch_name).aggregate(
+            resolved_true_count=Count('id', filter=Q(resolved=True)),
+            resolved_false_count=Count('id', filter=Q(resolved=False))
+        )
+
+        response_data = {
+            'product_reports': serializer.data,
+            'aggregation': {
+                "resolved_true_count": aggregation["resolved_true_count"],
+                "resolved_false_count": aggregation["resolved_false_count"]
+            }
+        }
+
+        return Response({'success': True, 'data': response_data})
 
 
 class ProductReportGroupedByBranchView(generics.GenericAPIView):
@@ -136,3 +162,20 @@ class ProductReportByBranchNameView(generics.GenericAPIView):
         )
         return Response(reports)
 
+
+class ProductReportUpdateByIdView(generics.GenericAPIView):
+    serializer_class = ProductReportIdSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        product_id = serializer.validated_data['id']
+        try:
+            instance = ProductsReport.objects.get(id=product_id)
+        except ProductsReport.DoesNotExist:
+            return Response({"success": False, "error": "Product report not found"}, status=status.HTTP_404_NOT_FOUND)
+        instance.fee = 0
+        instance.resolved = True
+        instance.save()
+
+        return Response({"success": True, "message": "Product report updated successfully"}, status=status.HTTP_200_OK)
