@@ -66,27 +66,27 @@ class DeleteManagerReason(generics.DestroyAPIView):
         return Response({'success': True})
 
 
-class ActivateManagerReason(generics.CreateAPIView):
+class ActivateManagerReason(generics.UpdateAPIView):
     serializer_class = DeleteManagerReasonSerializer
     queryset = ManagerReason.objects.all()
     lookup_field = 'id'
 
-    def destroy(self, request, *args, **kwargs):
+    def patch(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.active = True
-        instance.save()
+        instance.save(update_fields=['active'])  # Сохраняем только поле active
         return Response({'success': True})
 
 
-class DeactivateManagerReason(generics.CreateAPIView):
+class DeactivateManagerReason(generics.UpdateAPIView):
     serializer_class = DeleteManagerReasonSerializer
     queryset = ManagerReason.objects.all()
     lookup_field = 'id'
 
-    def destroy(self, request, *args, **kwargs):
+    def patch(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.active = False
-        instance.save()
+        instance.save(update_fields=['active'])
         return Response({'success': True})
 
 

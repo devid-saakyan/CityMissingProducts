@@ -11,8 +11,8 @@ class Reason(models.Model):
 class ManagerReason(models.Model):
     main_reason = models.ForeignKey(Reason, on_delete=models.SET_NULL, null=True, blank=True)
     name = models.CharField(max_length=50, unique=True)
-    fee = models.IntegerField()
-    active = models.BooleanField()
+    fee = models.IntegerField(null=True, blank=True)
+    active = models.BooleanField(null=True, blank=True)
 
     def __str__(self):
         return self.name
