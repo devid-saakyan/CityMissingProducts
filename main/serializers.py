@@ -31,7 +31,14 @@ class ProductsReportSerializer(serializers.ModelSerializer):
         model = ProductsReport
         fields = ['id', 'sap_code', 'sap_code_name', 'category_sap_code', 'category_sap_code_name', 'category_name',
                   'fee', 'manager_reason', 'main_reason', 'count', 'quantity', 'unit_price', 'branch', 'image', 'resolved',
-                  'comment']
+                  'comment', 'date']
+
+
+class ProductsReportInsertSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductsReport
+        fields = ['id', 'sap_code', 'sap_code_name', 'category_sap_code', 'category_sap_code_name',
+                  'fee', 'main_reason', 'count', 'quantity', 'unit_price', 'branch', 'image']
 
 
 class ProductReportIdSerializer(serializers.Serializer):

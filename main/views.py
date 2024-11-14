@@ -63,13 +63,13 @@ class DeleteManagerReason(generics.DestroyAPIView):
 
 class ProductReportCreateView(generics.CreateAPIView):
     queryset = ProductsReport.objects.all()
-    serializer_class = ProductsReportSerializer
+    serializer_class = ProductsReportInsertSerializer
 
     def create(self, request, *args, **kwargs):
         sap_code = request.data.get('sap_code')
         category_sap_code = request.data.get('category_sap_code')
         sap_code_name = request.data.get('sap_code_name')
-        category_name = request.data.get('category_name')
+        category_name = request.data.get('category_sap_code_name')
 
         product, _ = Product.objects.get_or_create(
             sap_code=sap_code,
@@ -80,10 +80,10 @@ class ProductReportCreateView(generics.CreateAPIView):
             defaults={'name': category_name}
         )
         data = request.data.copy()
-        data['sap_code'] = product.id
-        data['category_sap_code'] = category.id
-        data.pop('sap_code_name', None)
-        data.pop('category_name', None)
+        data['sap_code'] = product.sap_code
+        data['category_sap_code'] = category.category_sap_code
+        data['sap_code_name'] = sap_code_name
+        data['category_sap_code_name'] = category_name
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
