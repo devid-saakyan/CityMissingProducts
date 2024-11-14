@@ -71,7 +71,7 @@ class ActivateManagerReason(generics.UpdateAPIView):
     queryset = ManagerReason.objects.all()
     lookup_field = 'id'
 
-    def patch(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.active = True
         instance.save(update_fields=['active'])  # Сохраняем только поле active
@@ -83,7 +83,7 @@ class DeactivateManagerReason(generics.UpdateAPIView):
     queryset = ManagerReason.objects.all()
     lookup_field = 'id'
 
-    def patch(self, request, *args, **kwargs):
+    def post(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.active = False
         instance.save(update_fields=['active'])
