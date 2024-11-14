@@ -30,8 +30,10 @@ class ProductsReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductsReport
         fields = ['id', 'sap_code', 'sap_code_name', 'category_sap_code', 'category_sap_code_name', 'category_name',
-                  'fee', 'manager_reason', 'main_reason', 'count', 'quantity', 'unit_price', 'branch', 'image', 'resolved']
+                  'fee', 'manager_reason', 'main_reason', 'count', 'quantity', 'unit_price', 'branch', 'image', 'resolved',
+                  'comment']
 
 
 class ProductReportIdSerializer(serializers.Serializer):
     id = serializers.IntegerField()
+    comment = serializers.CharField(max_length=150)

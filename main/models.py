@@ -48,6 +48,7 @@ class ProductsReport(models.Model):
     branch = models.CharField(max_length=100)
     resolved = models.BooleanField(default=False)
     image = models.ImageField(upload_to='product_images/', null=True, blank=True)
+    comment = models.CharField(max_length=150, null=True, blank=True)
 
     def __str__(self):
         return f"Report for Product {self.sap_code} in Category {self.category_sap_code}"

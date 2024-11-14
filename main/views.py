@@ -170,12 +170,14 @@ class ProductReportUpdateByIdView(generics.GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         product_id = serializer.validated_data['id']
+        comment = serializer.validated_data['comment']
         try:
             instance = ProductsReport.objects.get(id=product_id)
         except ProductsReport.DoesNotExist:
             return Response({"success": False, "error": "Product report not found"}, status=status.HTTP_404_NOT_FOUND)
         instance.fee = 0
         instance.resolved = True
+        instance.comment = comment
         instance.save()
 
         return Response({"success": True, "message": "Product report updated successfully"}, status=status.HTTP_200_OK)
