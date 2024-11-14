@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
@@ -65,6 +67,13 @@ class ProductReportCreateView(generics.CreateAPIView):
     queryset = ProductsReport.objects.all()
     serializer_class = ProductsReportInsertSerializer
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'image', openapi.IN_FORM, type=openapi.TYPE_FILE, description="Image file"
+            )
+        ]
+    )
     def create(self, request, *args, **kwargs):
         sap_code = request.data.get('sap_code')
         category_sap_code = request.data.get('category_sap_code')
@@ -84,7 +93,7 @@ class ProductReportCreateView(generics.CreateAPIView):
         data['category_sap_code'] = category.category_sap_code
         data['sap_code_name'] = sap_code_name
         data['category_sap_code_name'] = category_name
-        serializer = self.get_serializer(data=data)
+        serializer = self.get_serializer(data=data, files=request.FILES)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         return Response({'success': True, 'data': serializer.data}, status=status.HTTP_200_OK)
