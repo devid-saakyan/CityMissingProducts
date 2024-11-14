@@ -12,6 +12,7 @@ class ManagerReason(models.Model):
     main_reason = models.ForeignKey(Reason, on_delete=models.SET_NULL, null=True, blank=True)
     name = models.CharField(max_length=50, unique=True)
     fee = models.IntegerField()
+    active = models.BooleanField()
 
     def __str__(self):
         return self.name
@@ -40,10 +41,10 @@ class ProductsReport(models.Model):
     category_sap_code = models.CharField(max_length=20)
     category_sap_code_name = models.CharField(max_length=40)
     main_reason = models.ForeignKey('Reason', on_delete=models.SET_NULL, null=True, blank=True)
-    manager_reason = models.ForeignKey('ManagerReason', on_delete=models.SET_NULL, null=True, blank=True)
+    manager_reason = models.ForeignKey('ManagerReason', on_delete=models.SET_NULL, null=True, blank=True, related_name='product_reports')
     fee = models.IntegerField(null=True, blank=True)
-    count = models.IntegerField()
-    quantity = models.IntegerField()
+    user_basket_count = models.IntegerField()
+    stock_count = models.IntegerField()
     unit_price = models.FloatField()
     branch = models.CharField(max_length=100)
     resolved = models.BooleanField(default=False)

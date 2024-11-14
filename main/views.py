@@ -30,12 +30,15 @@ class ManagerReasonsListView(generics.ListAPIView):
     serializer_class = ManagerReasonsSerializer
 
     def get_queryset(self):
-        print(self.kwargs)
         reason_id = self.kwargs.get('reason_id')
         if not reason_id:
             raise NotFound("reason_id parameter is required.")
 
-        return ManagerReason.objects.filter(main_reason=reason_id)
+        queryset = ManagerReason.objects.filter(main_reason=reason_id).annotate(
+            used_count=Count('product_reports')
+        )
+
+        return queryset
 
 
 class PostManagerReason(generics.CreateAPIView):
@@ -60,6 +63,30 @@ class DeleteManagerReason(generics.DestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         self.perform_destroy(instance)
+        return Response({'success': True})
+
+
+class ActivateManagerReason(generics.CreateAPIView):
+    serializer_class = DeleteManagerReasonSerializer
+    queryset = ManagerReason.objects.all()
+    lookup_field = 'id'
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.active = True
+        instance.save()
+        return Response({'success': True})
+
+
+class DeactivateManagerReason(generics.CreateAPIView):
+    serializer_class = DeleteManagerReasonSerializer
+    queryset = ManagerReason.objects.all()
+    lookup_field = 'id'
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.active = False
+        instance.save()
         return Response({'success': True})
 
 

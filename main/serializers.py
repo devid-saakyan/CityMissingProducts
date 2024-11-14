@@ -11,9 +11,11 @@ class ReasonSerializer(serializers.ModelSerializer):
 
 
 class ManagerReasonsSerializer(serializers.ModelSerializer):
+    used_count = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = ManagerReason
-        fields = ['id', 'name', 'fee', 'main_reason']
+        fields = ['id', 'name', 'fee', 'main_reason', 'active', 'used_count']
 
 
 class DeleteManagerReasonSerializer(serializers.ModelSerializer):
@@ -30,7 +32,7 @@ class ProductsReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductsReport
         fields = ['id', 'sap_code', 'sap_code_name', 'category_sap_code', 'category_sap_code_name', 'category_name',
-                  'fee', 'manager_reason', 'main_reason', 'count', 'quantity', 'unit_price', 'branch', 'image', 'resolved',
+                  'fee', 'manager_reason', 'main_reason', 'user_basket_count', 'stock_count', 'unit_price', 'branch', 'image', 'resolved',
                   'comment', 'date']
 
 
@@ -38,7 +40,7 @@ class ProductsReportInsertSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductsReport
         fields = ['id', 'sap_code', 'sap_code_name', 'category_sap_code', 'category_sap_code_name',
-                  'fee', 'main_reason', 'count', 'quantity', 'unit_price', 'branch', 'image']
+                  'main_reason', 'user_basket_count', 'stock_count', 'unit_price', 'branch', 'image']
 
 
 class ProductReportIdSerializer(serializers.Serializer):
