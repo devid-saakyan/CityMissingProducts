@@ -47,7 +47,7 @@ class ProductsReport(models.Model):
     unit_price = models.FloatField()
     branch = models.CharField(max_length=100)
     resolved = models.BooleanField(default=False)
-    image = models.ImageField(upload_to='product_images/', null=True, blank=True)
+    image = models.CharField(max_length=1000)
     comment = models.CharField(max_length=150, null=True, blank=True)
     date = models.DateTimeField(null=True, blank=True)
 
