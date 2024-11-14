@@ -93,7 +93,7 @@ class ProductReportCreateView(generics.CreateAPIView):
         data['category_sap_code'] = category.category_sap_code
         data['sap_code_name'] = sap_code_name
         data['category_sap_code_name'] = category_name
-        serializer = self.get_serializer(data=data, files=request.FILES)
+        serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
         return Response({'success': True, 'data': serializer.data}, status=status.HTTP_200_OK)
