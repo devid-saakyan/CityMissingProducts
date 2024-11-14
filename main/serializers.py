@@ -16,6 +16,12 @@ class ManagerReasonsSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'fee', 'main_reason']
 
 
+class DeleteManagerReasonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ManagerReason
+        fields = ['id']
+
+
 class ProductsReportSerializer(serializers.ModelSerializer):
     sap_code_name = serializers.CharField(write_only=True, required=False)
     category_name = serializers.CharField(write_only=True, required=False)
@@ -23,4 +29,4 @@ class ProductsReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductsReport
         fields = ['sap_code', 'sap_code_name', 'category_sap_code', 'category_name',
-                  'main_reason', 'count', 'quantity', 'unit_price', 'branch']
+                  'main_reason', 'count', 'quantity', 'unit_price', 'branch', 'image']

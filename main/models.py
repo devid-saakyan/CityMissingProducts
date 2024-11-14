@@ -45,6 +45,7 @@ class ProductsReport(models.Model):
     unit_price = models.FloatField()
     branch = models.CharField(max_length=100)
     resolved = models.BooleanField(default=False)
+    image = models.ImageField(upload_to='product_images/', null=True, blank=True)
 
     def __str__(self):
         return f"Report for Product {self.sap_code} in Category {self.category_sap_code}"

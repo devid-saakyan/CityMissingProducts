@@ -4,7 +4,9 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from .models import Reason
 from .serializers import *
+from django.db.models import Count, Q
 from django.db.models import Count
+from django.utils.dateparse import parse_date
 from rest_framework.exceptions import NotFound
 
 
@@ -48,6 +50,17 @@ class PostManagerReason(generics.CreateAPIView):
             return Response({'success': False, 'errors': e.detail})
 
 
+class DeleteManagerReason(generics.DestroyAPIView):
+    serializer_class = DeleteManagerReasonSerializer
+    queryset = ManagerReason.objects.all()
+    lookup_field = 'id'
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response({'success': True})
+
+
 class ProductReportCreateView(generics.CreateAPIView):
     queryset = ProductsReport.objects.all()
     serializer_class = ProductsReportSerializer
@@ -88,11 +101,38 @@ class ProductReportView(generics.ListAPIView):
                          'data': serializer.data})
 
 
+class ProductReportByBranchView(generics.ListAPIView):
+    serializer_class = ProductsReportSerializer
+
+    def get_queryset(self):
+        branch_name = self.kwargs.get('branch_name')
+        queryset = ProductsReport.objects.filter(branch=branch_name)
+        return queryset
+
+    def get(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({'success': True, 'data': serializer.data})
+
+
 class ProductReportGroupedByBranchView(generics.GenericAPIView):
+    serializer_class = ProductsReportSerializer
     def get(self, request):
         reports = ProductsReport.objects.values('branch').annotate(
             resolved_true_count=Count('id', filter=models.Q(resolved=True)),
             resolved_false_count=Count('id', filter=models.Q(resolved=False))
         ).order_by('branch')
+        return Response(reports)
+
+
+class ProductReportByBranchNameView(generics.GenericAPIView):
+    serializer_class = ProductsReportSerializer
+
+    def get(self, request, *args, **kwargs):
+        branch_name = kwargs.get('branch_name')
+        reports = ProductsReport.objects.filter(branch=branch_name).values('branch').annotate(
+            resolved_true_count=Count('id', filter=Q(resolved=True)),
+            resolved_false_count=Count('id', filter=Q(resolved=False))
+        )
         return Response(reports)
 
