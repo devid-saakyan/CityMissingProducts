@@ -25,3 +25,28 @@ class CategoryAdmin(admin.ModelAdmin):
 @admin.register(models.ProductsReport)
 class ProductReportAdmin(admin.ModelAdmin):
     list_display = ('sap_code', 'category_sap_code', 'main_reason', 'manager_reason')
+
+
+@admin.register(models.ReviewsCategory)
+class ReviewsCategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', )
+
+
+@admin.register(models.UserReview)
+class UserReviewAdmin(admin.ModelAdmin):
+    list_display = ('order_id', 'rate', 'comment')
+
+
+@admin.register(models.Branch)
+class BranchAdmin(admin.ModelAdmin):
+    list_display = ('name', )
+
+
+@admin.register(models.TelegramUserStatus)
+class TelegramUserStatusAdmin(admin.ModelAdmin):
+    list_display = ('name', )
+
+
+@admin.register(models.TelegramUser)
+class TelegramUserAdmin(admin.ModelAdmin):
+    list_display = ('user_id', 'status', 'branch', )

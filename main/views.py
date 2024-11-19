@@ -1,16 +1,15 @@
-from django.shortcuts import render
+import threading
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import generics, status
+from rest_framework import generics, status, views
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
-from .models import Reason
+from main.bot import send_review_to_telegram, send_report_to_telegram
 from .serializers import *
-from django.db.models import Count, Q
+from django.db.models import Q
 from django.db.models import Count
-from django.utils.dateparse import parse_date
 from rest_framework.exceptions import NotFound
-
+from .models import ReviewsCategory
 
 
 class ReasonListView(generics.ListAPIView):
@@ -122,8 +121,45 @@ class ProductReportCreateView(generics.CreateAPIView):
         data['category_sap_code_name'] = category_name
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
+        reasons = list(ManagerReason.objects.filter(main_reason=data['main_reason']).values('id', 'name'))
+        print(reasons)
         self.perform_create(serializer)
+        report = serializer.save()
+        threading.Thread(
+            target=send_report_to_telegram,
+            args=(report.sap_code_name,
+                  report.category_sap_code_name,
+                  report.unit_price,
+                  report.id,
+                  report.image,
+                  reasons,
+                  report.branch),
+            daemon=True
+        ).start()
         return Response({'success': True, 'data': serializer.data}, status=status.HTTP_200_OK)
+
+
+class UpdateUserReportReasonView(views.APIView):
+    @swagger_auto_schema(
+        request_body=UpdateReportReasonSerializer,
+        responses={
+            200: "reason updated successfully.",
+            400: "Invalid report or reason ID."
+        }
+    )
+    def post(self, request, *args, **kwargs):
+        report_id = request.data.get("report_id")
+        reason_id = request.data.get("reason_id")
+        try:
+            report = ProductsReport.objects.get(id=report_id)
+            reason = ManagerReason.objects.get(id=reason_id)
+            report.reason = reason
+            report.save()
+            return Response({"success": True, "message": "reason updated successfully."},
+                            status=status.HTTP_200_OK)
+        except (ProductsReport.DoesNotExist, ManagerReason.DoesNotExist):
+            return Response({"success": False, "message": "Invalid report or reason ID."},
+                            status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProductReportView(generics.ListAPIView):
@@ -217,3 +253,46 @@ class ProductReportUpdateByIdView(generics.GenericAPIView):
         instance.save()
 
         return Response({"success": True, "message": "Product report updated successfully"}, status=status.HTTP_200_OK)
+
+
+class UserReviewCreateView(generics.CreateAPIView):
+    queryset = UserReview.objects.all()
+    serializer_class = UserReviewSerializer
+
+    def create(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        review = serializer.save()
+        categories = list(ReviewsCategory.objects.values("id", "name"))
+
+        branch_name = review.branch.name if review.branch else "Филиал не указан"
+
+        threading.Thread(
+            target=send_review_to_telegram,
+            args=(review.order_id, review.rate, review.comment, review.id, categories, branch_name),
+            daemon=True
+        ).start()
+
+        return Response({'success': True, 'data': serializer.data})
+
+
+class UpdateUserReviewCategoryView(views.APIView):
+    @swagger_auto_schema(
+        request_body=UpdateUserReviewCategorySerializer,
+        responses={
+            200: "Category updated successfully.",
+            400: "Invalid review or category ID."
+        }
+    )
+    def post(self, request, *args, **kwargs):
+        review_id = request.data.get("review_id")
+        category_id = request.data.get("category_id")
+        try:
+            review = UserReview.objects.get(id=review_id)
+            category = ReviewsCategory.objects.get(id=category_id)
+            review.category = category
+            review.save()
+            return Response({"success": True, "message": "Category updated successfully."}, status=status.HTTP_200_OK)
+        except (UserReview.DoesNotExist, ReviewsCategory.DoesNotExist):
+            return Response({"success": False, "message": "Invalid review or category ID."}, status=status.HTTP_400_BAD_REQUEST)

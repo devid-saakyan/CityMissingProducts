@@ -46,3 +46,32 @@ class ProductsReportInsertSerializer(serializers.ModelSerializer):
 class ProductReportIdSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     comment = serializers.CharField(max_length=150)
+
+
+class UserReviewSerializer(serializers.ModelSerializer):
+    branch_name = serializers.CharField(required=True)
+
+    class Meta:
+        model = UserReview
+        fields = ['id', 'order_id', 'rate', 'comment', 'created_at', 'branch_name']
+        read_only_fields = ['id', 'created_at', 'branch_name']
+
+    def create(self, validated_data):
+        branch_name = validated_data.pop('branch_name', None)
+        if branch_name:
+            branch, _ = Branch.objects.get_or_create(name=branch_name)
+            validated_data['branch'] = branch
+        else:
+            validated_data['branch'] = None
+
+        return super().create(validated_data)
+
+
+class UpdateUserReviewCategorySerializer(serializers.Serializer):
+    review_id = serializers.IntegerField()
+    category_id = serializers.IntegerField()
+
+
+class UpdateReportReasonSerializer(serializers.Serializer):
+    report_id = serializers.IntegerField()
+    reason_id = serializers.IntegerField()
