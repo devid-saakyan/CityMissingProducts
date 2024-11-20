@@ -49,4 +49,4 @@ class TelegramUserStatusAdmin(admin.ModelAdmin):
 
 @admin.register(models.TelegramUser)
 class TelegramUserAdmin(admin.ModelAdmin):
-    list_display = ('user_id', 'status', 'branch', )
+    list_display = ('user_id', 'status', 'branch', 'info', )
