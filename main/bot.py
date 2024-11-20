@@ -6,7 +6,7 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from main.models import TelegramUser
 from django.db.models import Q
 
-
+#BOT_TOKEN = '6064450479:AAFS9B4HGD7d1BEoVYL5qyUPG88otYlJzfU'
 BOT_TOKEN = "7946030117:AAG_r4--uVvaLTHNKLlrIuIonaTbMr_W2Nk"
 PRODUCT_REPORT_API_URL = "http://127.0.0.1:8014/api/UpdateProductReport"
 REVIEW_CATEGORY_API_URL = "http://127.0.0.1:8014/api/UpdateReviewCategory"
@@ -32,11 +32,10 @@ def send_report_to_telegram(sap_code_name, category_sap_code_name, price, report
         f"📦 <b>Ապրանք:</b> {sap_code_name}\n"
         f"📂 <b>Կատեգորիա:</b> {category_sap_code_name}\n"
         f"💰 <b>Գին:</b> {price} ֏\n"
-        f"🖼 <b>Նկար:</b> <a href='{image_url}'></a>"
+        f"🖼 <b>Նկար:</b> <a href='{image_url}'>Նայել</a>"
     )
-    print(branch)
+
     chat_ids = get_active_chat_ids(branch)
-    print(chat_ids)
     for chat_id in chat_ids:
         try:
             bot.send_message(chat_id=chat_id, text=text, reply_markup=keyboard, parse_mode="HTML")
