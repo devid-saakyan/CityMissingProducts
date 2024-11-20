@@ -31,7 +31,7 @@ def send_report_to_telegram(sap_code_name, category_sap_code_name, price, report
         f"🏬 <b>Մասնաճյուղ:</b> {branch}\n"
         f"📦 <b>Ապրանք:</b> {sap_code_name}\n"
         f"📂 <b>Կատեգորիա:</b> {category_sap_code_name}\n"
-        f"💰 <b>Գին:</b> {price} ₽\n"
+        f"💰 <b>Գին:</b> {price} ֏\n"
         f"🖼 <b>Նկար:</b> <a href='{image_url}'></a>"
     )
     print(branch)
