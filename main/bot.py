@@ -27,12 +27,12 @@ def send_report_to_telegram(sap_code_name, category_sap_code_name, price, report
         keyboard.add(InlineKeyboardButton(text=reason['name'], callback_data=callback_data))
 
     text = (
-        f"📢 <b>Новый возврат</b>\n"
-        f"🏬 <b>Филиал:</b> {branch}\n"
-        f"📦 <b>Наименование товара:</b> {sap_code_name}\n"
-        f"📂 <b>Категория товара:</b> {category_sap_code_name}\n"
-        f"💰 <b>Цена:</b> {price} ₽\n"
-        f"🖼 <b>Фото:</b> <a href='{image_url}'>Просмотр</a>"
+        f"📢 <b>Նոր վերադարձ</b>\n"
+        f"🏬 <b>Մասնաճյուղ:</b> {branch}\n"
+        f"📦 <b>Ապրանք:</b> {sap_code_name}\n"
+        f"📂 <b>Կատեգորիա:</b> {category_sap_code_name}\n"
+        f"💰 <b>Գին:</b> {price} ₽\n"
+        f"🖼 <b>Նկար:</b> <a href='{image_url}'></a>"
     )
     print(branch)
     chat_ids = get_active_chat_ids(branch)
@@ -51,10 +51,10 @@ def send_review_to_telegram(order_id, rate, comment, review_id, categories, bran
         keyboard.add(InlineKeyboardButton(text=category['name'], callback_data=callback_data))
 
     text = (
-        f"📢 <b>Новый отзыв</b>\n"
-        f"📦 <b>Order ID:</b> {order_id}\n"
-        f"⭐ <b>Оценка:</b> {rate}\n"
-        f"💬 <b>Комментарий:</b> {comment}"
+        f"📢 <b>Նոր գնահատական</b>\n"
+        f"📦 <b>Պատվերի №:</b> {order_id}\n"
+        f"⭐ <b>Գնահատական:</b> {rate}\n"
+        f"💬 <b>Մեկնաբանություն:</b> {comment}"
     )
 
     chat_ids = get_active_chat_ids(branch)
