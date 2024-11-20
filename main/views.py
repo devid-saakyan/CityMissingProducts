@@ -296,3 +296,27 @@ class UpdateUserReviewCategoryView(views.APIView):
             return Response({"success": True, "message": "Category updated successfully."}, status=status.HTTP_200_OK)
         except (UserReview.DoesNotExist, ReviewsCategory.DoesNotExist):
             return Response({"success": False, "message": "Invalid review or category ID."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetOrderRateStatusByOrderId(generics.ListAPIView):
+    serializer_class = UserReviewSerializer
+
+    def get(self, request, *args, **kwargs):
+        order_id = kwargs.get('order_id')
+        reports = UserReview.objects.filter(order_id=order_id).values('order_id')
+        if len(reports) == 0:
+            return Response({"exists": False, "data": reports})
+        else:
+            return Response({"exists": True, "data": reports})
+
+
+class GetOrderRateStatusByBonus(generics.ListAPIView):
+    serializer_class = UserReviewSerializer
+
+    def get(self, request, *args, **kwargs):
+        order_id = kwargs.get('user_bonus')
+        reports = UserReview.objects.filter(order_id=order_id).values('user_bonus')
+        if len(reports) == 0:
+            return Response({"exists": False, "data": reports})
+        else:
+            return Response({"exists": True, "data": reports})

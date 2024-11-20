@@ -53,7 +53,7 @@ class UserReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserReview
-        fields = ['id', 'order_id', 'rate', 'comment', 'created_at', 'branch_name']
+        fields = ['id', 'order_id', 'user_bonus', 'rate', 'comment', 'created_at', 'branch_name']
         read_only_fields = ['id', 'created_at', 'branch_name']
 
     def create(self, validated_data):

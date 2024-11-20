@@ -17,5 +17,7 @@ urlpatterns = [
     path('BranchReport', ProductReportGroupedByBranchView.as_view(), name='BranchReport'),
     path('BranchReport/<str:branch_name>', ProductReportByBranchNameView.as_view(), name='ReportByBranch'),
     path('UserReview/add', UserReviewCreateView.as_view(), name='user-review-add'),
+    path('UserReview/exists/ById/<str:order_id>', GetOrderRateStatusByOrderId.as_view(), name='user-review--by-order-id'),
+    path('UserReview/exists/ByBonus/<str:user_bonus>', GetOrderRateStatusByBonus.as_view(), name='user-review-by-bonus'),
     path('UpdateReviewCategory', UpdateUserReviewCategoryView.as_view(), name='update-review-category'),
 ]
