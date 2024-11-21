@@ -125,6 +125,7 @@ class ProductReportCreateView(generics.CreateAPIView):
         print(reasons)
         self.perform_create(serializer)
         report = serializer.save()
+        print(report.main_reason)
         threading.Thread(
             target=send_report_to_telegram,
             args=(report.sap_code_name,
@@ -133,7 +134,8 @@ class ProductReportCreateView(generics.CreateAPIView):
                   report.id,
                   report.image,
                   reasons,
-                  report.branch),
+                  report.branch,
+                  report.main_reason),
             daemon=True
         ).start()
         return Response({'success': True, 'data': serializer.data}, status=status.HTTP_200_OK)
@@ -153,7 +155,7 @@ class UpdateUserReportReasonView(views.APIView):
         try:
             report = ProductsReport.objects.get(id=report_id)
             reason = ManagerReason.objects.get(id=reason_id)
-            report.reason = reason
+            report.manager_reason = reason
             report.save()
             return Response({"success": True, "message": "reason updated successfully."},
                             status=status.HTTP_200_OK)

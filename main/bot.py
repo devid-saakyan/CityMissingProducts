@@ -6,7 +6,7 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from main.models import TelegramUser
 from django.db.models import Q
 
-#BOT_TOKEN = '6064450479:AAFS9B4HGD7d1BEoVYL5qyUPG88otYlJzfU'
+#BOT_TOKEN = '6064450479:AAFS9B4HGD7d1BEoVYL5qyUPG88otYlJzfU' #test
 BOT_TOKEN = "7946030117:AAG_r4--uVvaLTHNKLlrIuIonaTbMr_W2Nk"
 PRODUCT_REPORT_API_URL = "http://127.0.0.1:8014/api/UpdateProductReport"
 REVIEW_CATEGORY_API_URL = "http://127.0.0.1:8014/api/UpdateReviewCategory"
@@ -20,14 +20,15 @@ def get_active_chat_ids(branch):
         return list(TelegramUser.objects.filter(Q(branch__name=branch) | Q(status__name='Admin')).values_list("user_id", flat=True))
 
 
-def send_report_to_telegram(sap_code_name, category_sap_code_name, price, report_id, image_url, reasons, branch):
+def send_report_to_telegram(sap_code_name, category_sap_code_name, price, report_id, image_url, reasons, branch, main_reason):
+    main_reason_dict = {'Out of stock': 'Պահեստում չկա', 'Product Quality': 'Ապրանքի որակ', 'Expire Date': 'Ժամկետ'}
     keyboard = InlineKeyboardMarkup()
     for reason in reasons:
         callback_data = f"report:{report_id}:{reason['id']}"
         keyboard.add(InlineKeyboardButton(text=reason['name'], callback_data=callback_data))
 
     text = (
-        f"📢 <b>Նոր վերադարձ</b>\n"
+        f"📢 <b>Նոր վերադարձ: {main_reason_dict.get(str(main_reason))}</b>\n"
         f"🏬 <b>Մասնաճյուղ:</b> {branch}\n"
         f"📦 <b>Ապրանք:</b> {sap_code_name}\n"
         f"📂 <b>Կատեգորիա:</b> {category_sap_code_name}\n"
