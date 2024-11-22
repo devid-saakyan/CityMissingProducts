@@ -20,7 +20,7 @@ def get_active_chat_ids(branch):
         return list(TelegramUser.objects.filter(Q(branch__name=branch) | Q(status__name='Admin')).values_list("user_id", flat=True))
 
 
-def send_report_to_telegram(sap_code_name, category_sap_code_name, price, report_id, image_url, reasons, branch, main_reason,
+def send_report_to_telegram(sap_code_name, sap_code, price, report_id, image_url, reasons, branch, main_reason,
                             user_basket_count, stock_count):
     main_reason_dict = {'Out of stock': 'Պահեստում չկա', 'Product Quality': 'Ապրանքի որակ', 'Expire Date': 'Ժամկետ'}
     keyboard = InlineKeyboardMarkup()
@@ -32,7 +32,7 @@ def send_report_to_telegram(sap_code_name, category_sap_code_name, price, report
         f"📢 <b>Նոր վերադարձ: {main_reason_dict.get(str(main_reason))}</b>\n"
         f"🏬 <b>Մասնաճյուղ:</b> {branch}\n"
         f"📦 <b>Ապրանք:</b> {sap_code_name}\n"
-        f"📂 <b>Կատեգորիա:</b> {category_sap_code_name}\n"
+        f"📂 <b>Sap Code:</b> {sap_code}\n"
         f"📦 <b>Պատվիրած քանակ:</b> {user_basket_count} հատ\n"
         f"📦 <b>Առկա քանակ:</b> {stock_count} հատ\n"
         f"💰 <b>Գին:</b> {price} ֏\n"

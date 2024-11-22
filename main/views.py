@@ -131,7 +131,7 @@ class ProductReportCreateView(generics.CreateAPIView):
         threading.Thread(
             target=send_report_to_telegram,
             args=(report.sap_code_name,
-                  report.category_sap_code_name,
+                  report.sap_code,
                   report.unit_price,
                   report.id,
                   report.image,
