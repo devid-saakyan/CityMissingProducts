@@ -10,7 +10,9 @@ from django.db.models import Q
 from django.db.models import Count
 from rest_framework.exceptions import NotFound
 from .models import ReviewsCategory
-
+from django.db.models import Func, F
+from django.db.models.functions import Cast
+from django.db.models import DateField
 
 class ReasonListView(generics.ListAPIView):
     serializer_class = ReasonSerializer
@@ -135,7 +137,9 @@ class ProductReportCreateView(generics.CreateAPIView):
                   report.image,
                   reasons,
                   report.branch,
-                  report.main_reason),
+                  report.main_reason,
+                  report.user_basket_count,
+                  report.stock_count),
             daemon=True
         ).start()
         return Response({'success': True, 'data': serializer.data}, status=status.HTTP_200_OK)
@@ -165,15 +169,17 @@ class UpdateUserReportReasonView(views.APIView):
 
 
 class ProductReportView(generics.ListAPIView):
-    queryset = ProductsReport.objects.all()
     serializer_class = ProductsReportSerializer
+
+    def get_queryset(self):
+        return ProductsReport.objects.annotate(
+            date_as_date=Cast('date', output_field=DateField())
+        ).order_by('-date_as_date')
 
     def get(self, request):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        print(serializer)
-        return Response({'success': True,
-                         'data': serializer.data})
+        return Response({'success': True, 'data': serializer.data})
 
 
 class ProductReportByBranchView(generics.ListAPIView):

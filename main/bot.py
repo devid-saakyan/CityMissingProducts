@@ -3,7 +3,7 @@ import django
 import telebot
 import requests
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
-from main.models import TelegramUser
+from main.models import TelegramUser, ProductsReport
 from django.db.models import Q
 
 #BOT_TOKEN = '6064450479:AAFS9B4HGD7d1BEoVYL5qyUPG88otYlJzfU' #test
@@ -20,7 +20,8 @@ def get_active_chat_ids(branch):
         return list(TelegramUser.objects.filter(Q(branch__name=branch) | Q(status__name='Admin')).values_list("user_id", flat=True))
 
 
-def send_report_to_telegram(sap_code_name, category_sap_code_name, price, report_id, image_url, reasons, branch, main_reason):
+def send_report_to_telegram(sap_code_name, category_sap_code_name, price, report_id, image_url, reasons, branch, main_reason,
+                            user_basket_count, stock_count):
     main_reason_dict = {'Out of stock': 'Պահեստում չկա', 'Product Quality': 'Ապրանքի որակ', 'Expire Date': 'Ժամկետ'}
     keyboard = InlineKeyboardMarkup()
     for reason in reasons:
@@ -32,6 +33,8 @@ def send_report_to_telegram(sap_code_name, category_sap_code_name, price, report
         f"🏬 <b>Մասնաճյուղ:</b> {branch}\n"
         f"📦 <b>Ապրանք:</b> {sap_code_name}\n"
         f"📂 <b>Կատեգորիա:</b> {category_sap_code_name}\n"
+        f"📦 <b>Պատվիրած քանակ:</b> {user_basket_count} հատ\n"
+        f"📦 <b>Առկա քանակ:</b> {stock_count} հատ\n"
         f"💰 <b>Գին:</b> {price} ֏\n"
         f"🖼 <b>Նկար:</b> <a href='{image_url}'>Նայել</a>"
     )
@@ -75,16 +78,19 @@ def handle_report_reason(call):
             json={"report_id": int(report_id), "reason_id": int(reason_id)}
         )
         if response.status_code == 200:
+            report = ProductsReport.objects.get(id=report_id)
+            print(report)
             bot.edit_message_text(
                 chat_id=call.message.chat.id,
                 message_id=call.message.message_id,
-                text=f"Причина для возврата {report_id} обновлена.\nВыбранная причина: {reason_id}"
+                text=f"Վերադարձի պատճառը թարմացվեց:\nԸնտրված պատճառը: {report.manager_reason}"
             )
-            bot.answer_callback_query(call.id, "Причина успешно обновлена!")
+            bot.answer_callback_query(call.id, "Վերադարձի պատճառը թարմացվեց")
         else:
-            bot.answer_callback_query(call.id, "Ошибка обновления причины.", show_alert=True)
+            bot.answer_callback_query(call.id, "Պատճառի թարմացումը ձախողվեց։", show_alert=True)
     except Exception as e:
-        bot.answer_callback_query(call.id, f"Произошла ошибка: {e}", show_alert=True)
+        bot.answer_callback_query(call.id, f"Սխալ է տեղի ունեցել: {e}", show_alert=True)
+
 
 # Обработка callback для отзывов
 @bot.callback_query_handler(func=lambda call: call.data.startswith("review:"))
