@@ -236,7 +236,10 @@ class CombinedProductReportByBranchView(generics.ListAPIView):
         branch_name = self.kwargs.get('branch_name')
         filter_value = self.request.query_params.get('filter')
 
-        queryset = ProductsReport.objects.filter(branch=branch_name)
+        queryset = ProductsReport.objects.filter(branch=branch_name).annotate(
+            date_as_date=Cast('date', output_field=DateField())
+        ).order_by('-date_as_date')
+
         if filter_value == '1':
             queryset = queryset.filter(resolved=True)
         elif filter_value == '2':
