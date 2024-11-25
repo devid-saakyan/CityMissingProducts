@@ -237,9 +237,9 @@ class CombinedProductReportByBranchView(generics.ListAPIView):
 
         queryset = ProductsReport.objects.filter(branch=branch_name)
         if filter_value == '1':
-            queryset = queryset.filter(resolved=False)
-        elif filter_value == '2':
             queryset = queryset.filter(resolved=True)
+        elif filter_value == '2':
+            queryset = queryset.filter(resolved=False)
 
         page = self.paginate_queryset(queryset)
 
