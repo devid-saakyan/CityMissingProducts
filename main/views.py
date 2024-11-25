@@ -160,7 +160,8 @@ class ProductReportCreateView(generics.CreateAPIView):
                   report.branch,
                   report.main_reason,
                   report.user_basket_count / 1000 if report.is_kilogram is True else report.user_basket_count,
-                  report.stock_count / 1000 if report.is_kilogram is True else report.stock_count),
+                  report.stock_count / 1000 if report.is_kilogram is True else report.stock_count,
+                  report.is_kilogram),
             daemon=True
         ).start()
         return Response({'success': True, 'data': serializer.data}, status=status.HTTP_200_OK)
@@ -242,6 +243,8 @@ class CombinedProductReportByBranchView(generics.ListAPIView):
         queryset = ProductsReport.objects.filter(branch=branch_name)
 
         def parse_date(date_str):
+            if not date_str:
+                return datetime.min
             formats = [
                 "%m/%d/%Y %I:%M:%S %p",
                 "%Y-%m-%d %H:%M:%S.%f",

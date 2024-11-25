@@ -21,20 +21,20 @@ def get_active_chat_ids(branch):
 
 
 def send_report_to_telegram(sap_code_name, sap_code, price, report_id, image_url, reasons, branch, main_reason,
-                            user_basket_count, stock_count):
+                            user_basket_count, stock_count, is_kilogram):
     main_reason_dict = {'Out of stock': 'Պահեստում չկա', 'Product Quality': 'Ապրանքի որակ', 'Expire Date': 'Ժամկետ'}
     keyboard = InlineKeyboardMarkup()
     for reason in reasons:
         callback_data = f"report:{report_id}:{reason['id']}"
         keyboard.add(InlineKeyboardButton(text=reason['name'], callback_data=callback_data))
-
+    kilo_or_count = 'կգ' if is_kilogram is True else 'հատ'
     text = (
         f"📢 <b>Նոր վերադարձ: {main_reason_dict.get(str(main_reason))}</b>\n"
         f"🏬 <b>Մասնաճյուղ:</b> {branch}\n"
         f"📦 <b>Ապրանք:</b> {sap_code_name}\n"
         f"📂 <b>Sap Code:</b> {sap_code}\n"
-        f"📦 <b>Պատվիրած քանակ:</b> {user_basket_count} հատ\n"
-        f"📦 <b>Առկա քանակ:</b> {stock_count} հատ\n"
+        f"📦 <b>Պատվիրած քանակ:</b> {user_basket_count} {kilo_or_count}\n"
+        f"📦 <b>Առկա քանակ:</b> {stock_count} {kilo_or_count}\n"
         f"💰 <b>Գին:</b> {price} ֏\n"
         f"🖼 <b>Նկար:</b> <a href='{image_url}'>Նայել</a>"
     )
