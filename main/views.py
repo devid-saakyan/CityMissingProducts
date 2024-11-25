@@ -218,29 +218,56 @@ class ProductReportByBranchView(generics.ListAPIView):
         return Response({'success': True, 'data': serializer.data})
 
 
-class CombinedProductReportByBranchView(generics.GenericAPIView):
+class CombinedProductReportByBranchView(generics.ListAPIView):
     serializer_class = ProductsReportSerializer
+    pagination_class = CustomPagination
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter('filter', openapi.IN_QUERY, description="0: All, 1: Resolved=False, 2: Resolved=True",
+                              type=openapi.TYPE_INTEGER),
+            openapi.Parameter('branch_name', openapi.IN_PATH, description="Branch Name", type=openapi.TYPE_STRING),
+        ],
+        operation_description="Retrieve product reports by branch with optional filtering and pagination",
+        responses={200: "List of product reports with resolved and unresolved counts."}
+    )
     def get(self, request, *args, **kwargs):
         branch_name = self.kwargs.get('branch_name')
+        filter_value = self.request.query_params.get('filter')
 
-        product_reports = ProductsReport.objects.filter(branch=branch_name)
-        serializer = self.get_serializer(product_reports, many=True)
+        queryset = ProductsReport.objects.filter(branch=branch_name)
+        if filter_value == '1':
+            queryset = queryset.filter(resolved=False)
+        elif filter_value == '2':
+            queryset = queryset.filter(resolved=True)
+
+        page = self.paginate_queryset(queryset)
 
         aggregation = ProductsReport.objects.filter(branch=branch_name).aggregate(
             resolved_true_count=Count('id', filter=Q(resolved=True)),
             resolved_false_count=Count('id', filter=Q(resolved=False))
         )
 
-        response_data = {
-            'product_reports': serializer.data,
-            'aggregation': {
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            paginated_response = self.get_paginated_response(serializer.data)
+            paginated_response.data.update({
+                "aggregation": {
+                    "resolved_true_count": aggregation["resolved_true_count"],
+                    "resolved_false_count": aggregation["resolved_false_count"]
+                }
+            })
+            return paginated_response
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response({
+            'success': True,
+            'data': serializer.data,
+            "aggregation": {
                 "resolved_true_count": aggregation["resolved_true_count"],
                 "resolved_false_count": aggregation["resolved_false_count"]
             }
-        }
-
-        return Response({'success': True, 'data': response_data})
+        })
 
 
 class ProductReportGroupedByBranchView(generics.GenericAPIView):
