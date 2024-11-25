@@ -13,6 +13,22 @@ from .models import ReviewsCategory
 from django.db.models import Func, F
 from django.db.models.functions import Cast
 from django.db.models import DateField
+from rest_framework.pagination import PageNumberPagination
+
+
+class CustomPagination(PageNumberPagination):
+    page_size_query_param = 'count'
+    page_size = 10
+    max_page_size = 100
+
+    def get_paginated_response(self, data):
+        return Response({
+            'success': True,
+            'list': data,
+            'ItemCount': self.page.paginator.count,
+            'PageCount': self.page.paginator.num_pages
+        })
+
 
 class ReasonListView(generics.ListAPIView):
     serializer_class = ReasonSerializer
@@ -160,6 +176,8 @@ class UpdateUserReportReasonView(views.APIView):
             report = ProductsReport.objects.get(id=report_id)
             reason = ManagerReason.objects.get(id=reason_id)
             report.manager_reason = reason
+            report.fee = reason.fee
+            report.resolved = True
             report.save()
             return Response({"success": True, "message": "reason updated successfully."},
                             status=status.HTTP_200_OK)
@@ -170,16 +188,20 @@ class UpdateUserReportReasonView(views.APIView):
 
 class ProductReportView(generics.ListAPIView):
     serializer_class = ProductsReportSerializer
+    pagination_class = CustomPagination
 
     def get_queryset(self):
-        return ProductsReport.objects.annotate(
+        filter_value = self.request.query_params.get('filter')
+        queryset = ProductsReport.objects.annotate(
             date_as_date=Cast('date', output_field=DateField())
         ).order_by('-date_as_date')
 
-    def get(self, request):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        return Response({'success': True, 'data': serializer.data})
+        if filter_value == '1':
+            queryset = queryset.filter(resolved=False)
+        elif filter_value == '2':
+            queryset = queryset.filter(resolved=True)
+
+        return queryset
 
 
 class ProductReportByBranchView(generics.ListAPIView):

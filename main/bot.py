@@ -61,7 +61,6 @@ def send_review_to_telegram(order_id, rate, comment, review_id, categories, bran
     )
 
     chat_ids = get_active_chat_ids(branch)
-    print(1111111111111, chat_ids)
     for chat_id in chat_ids:
         try:
             bot.send_message(chat_id=chat_id, text=text, reply_markup=keyboard, parse_mode="HTML")
