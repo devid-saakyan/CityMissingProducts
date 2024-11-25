@@ -1,3 +1,4 @@
+from datetime import datetime
 import threading
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -7,6 +8,7 @@ from rest_framework.exceptions import ValidationError
 from main.bot import send_review_to_telegram, send_report_to_telegram
 from .serializers import *
 from django.db.models import Q
+from dateutil.parser import isoparse
 from django.db.models import Count
 from rest_framework.exceptions import NotFound
 from .models import ReviewsCategory
@@ -14,6 +16,8 @@ from django.db.models import Func, F
 from django.db.models.functions import Cast
 from django.db.models import DateField
 from rest_framework.pagination import PageNumberPagination
+from django.db.models import Func
+
 
 
 class CustomPagination(PageNumberPagination):
@@ -155,8 +159,8 @@ class ProductReportCreateView(generics.CreateAPIView):
                   reasons,
                   report.branch,
                   report.main_reason,
-                  report.user_basket_count // 1000 if report.is_kilogram is True else report.user_basket_count,
-                  report.stock_count // 1000 if report.is_kilogram is True else report.stock_count),
+                  report.user_basket_count / 1000 if report.is_kilogram is True else report.user_basket_count,
+                  report.stock_count / 1000 if report.is_kilogram is True else report.stock_count),
             daemon=True
         ).start()
         return Response({'success': True, 'data': serializer.data}, status=status.HTTP_200_OK)
@@ -235,10 +239,30 @@ class CombinedProductReportByBranchView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         branch_name = self.kwargs.get('branch_name')
         filter_value = self.request.query_params.get('filter')
+        queryset = ProductsReport.objects.filter(branch=branch_name)
 
-        queryset = ProductsReport.objects.filter(branch=branch_name).annotate(
-            date_as_date=Cast('date', output_field=DateField())
-        ).order_by('-date_as_date')
+        def parse_date(date_str):
+            formats = [
+                "%m/%d/%Y %I:%M:%S %p",
+                "%Y-%m-%d %H:%M:%S.%f",
+                "%Y-%m-%d %H:%M:%S",
+            ]
+            for fmt in formats:
+                try:
+                    return datetime.strptime(date_str, fmt)
+                except ValueError:
+                    continue
+            try:
+                parsed_date = isoparse(date_str)
+                return parsed_date.replace(tzinfo=None)
+            except ValueError:
+                raise ValueError(f"Unknown date format: {date_str}")
+
+        queryset = sorted(
+            queryset,
+            key=lambda obj: parse_date(obj.date),
+            reverse=True
+        )
 
         if filter_value == '1':
             queryset = queryset.filter(resolved=True)
