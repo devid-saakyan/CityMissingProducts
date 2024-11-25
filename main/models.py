@@ -52,6 +52,8 @@ class ProductsReport(models.Model):
     image = models.CharField(max_length=1000)
     comment = models.CharField(max_length=150, null=True, blank=True)
     date = models.CharField(max_length=100, null=True, blank=True)
+    order_id = models.IntegerField(null=True, blank=True)
+    is_kilogram = models.BooleanField(default=False, null=True, blank=True)
 
     def __str__(self):
         return f"Report for Product {self.sap_code} in Category {self.category_sap_code}"

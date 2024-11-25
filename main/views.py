@@ -144,6 +144,7 @@ class ProductReportCreateView(generics.CreateAPIView):
         self.perform_create(serializer)
         report = serializer.save()
         print(report.main_reason)
+        print(report.is_kilogram)
         threading.Thread(
             target=send_report_to_telegram,
             args=(report.sap_code_name,
@@ -154,8 +155,8 @@ class ProductReportCreateView(generics.CreateAPIView):
                   reasons,
                   report.branch,
                   report.main_reason,
-                  report.user_basket_count,
-                  report.stock_count),
+                  report.user_basket_count // 1000 if report.is_kilogram is True else report.user_basket_count,
+                  report.stock_count // 1000 if report.is_kilogram is True else report.stock_count),
             daemon=True
         ).start()
         return Response({'success': True, 'data': serializer.data}, status=status.HTTP_200_OK)
