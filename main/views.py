@@ -183,7 +183,7 @@ class UpdateUserReportReasonView(views.APIView):
             reason = ManagerReason.objects.get(id=reason_id)
             report.manager_reason = reason
             report.fee = reason.fee
-            report.resolved = True
+            #report.resolved = True
             report.save()
             return Response({"success": True, "message": "reason updated successfully."},
                             status=status.HTTP_200_OK)
@@ -203,9 +203,9 @@ class ProductReportView(generics.ListAPIView):
         ).order_by('-date_as_date')
 
         if filter_value == '1':
-            queryset = queryset.filter(resolved=False)
+            queryset = queryset.filter(manager_reason__isnull=True)
         elif filter_value == '2':
-            queryset = queryset.filter(resolved=True)
+            queryset = queryset.filter(manager_reason__isnull=False)
 
         return queryset
 
@@ -242,9 +242,9 @@ class CombinedProductReportByBranchView(generics.ListAPIView):
         filter_value = self.request.query_params.get('filter')
         queryset = ProductsReport.objects.filter(branch=branch_name)
         if filter_value == '1':
-            queryset = queryset.filter(resolved=False)
+            queryset = queryset.filter(manager_reason__isnull=True)
         elif filter_value == '2':
-            queryset = queryset.filter(resolved=True)
+            queryset = queryset.filter(manager_reason__isnull=False)
 
         def parse_date(date_str):
             if not date_str:
@@ -274,8 +274,8 @@ class CombinedProductReportByBranchView(generics.ListAPIView):
         page = self.paginate_queryset(queryset)
 
         aggregation = ProductsReport.objects.filter(branch=branch_name).aggregate(
-            resolved_true_count=Count('id', filter=Q(resolved=True)),
-            resolved_false_count=Count('id', filter=Q(resolved=False))
+            resolved_true_count=Count('id', filter=Q(manager_reason__isnull=False)),
+            resolved_false_count=Count('id', filter=Q(manager_reason__isnull=True))
         )
 
         if page is not None:
@@ -304,8 +304,8 @@ class ProductReportGroupedByBranchView(generics.GenericAPIView):
     serializer_class = ProductsReportSerializer
     def get(self, request):
         reports = ProductsReport.objects.values('branch').annotate(
-            resolved_true_count=Count('id', filter=models.Q(resolved=True)),
-            resolved_false_count=Count('id', filter=models.Q(resolved=False))
+            resolved_true_count=Count('id', filter=models.Q(manager_reason__isnull=False)),
+            resolved_false_count=Count('id', filter=models.Q(manager_reason__isnull=True))
         ).order_by('branch')
         return Response(reports)
 
@@ -316,8 +316,8 @@ class ProductReportByBranchNameView(generics.GenericAPIView):
     def get(self, request, *args, **kwargs):
         branch_name = kwargs.get('branch_name')
         reports = ProductsReport.objects.filter(branch=branch_name).values('branch').annotate(
-            resolved_true_count=Count('id', filter=Q(resolved=True)),
-            resolved_false_count=Count('id', filter=Q(resolved=False))
+            resolved_true_count=Count('id', filter=models.Q(manager_reason__isnull=False)),
+            resolved_false_count=Count('id', filter=models.Q(manager_reason__isnull=True))
         )
         return Response(reports)
 
