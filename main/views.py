@@ -241,6 +241,10 @@ class CombinedProductReportByBranchView(generics.ListAPIView):
         branch_name = self.kwargs.get('branch_name')
         filter_value = self.request.query_params.get('filter')
         queryset = ProductsReport.objects.filter(branch=branch_name)
+        if filter_value == '1':
+            queryset = queryset.filter(resolved=False)
+        elif filter_value == '2':
+            queryset = queryset.filter(resolved=True)
 
         def parse_date(date_str):
             if not date_str:
@@ -266,11 +270,6 @@ class CombinedProductReportByBranchView(generics.ListAPIView):
             key=lambda obj: parse_date(obj.date),
             reverse=True
         )
-
-        if filter_value == '1':
-            queryset = queryset.filter(resolved=True)
-        elif filter_value == '2':
-            queryset = queryset.filter(resolved=False)
 
         page = self.paginate_queryset(queryset)
 
