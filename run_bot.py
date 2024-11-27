@@ -11,7 +11,7 @@ from main.bot import bot
 if __name__ == "__main__":
     while True:
         try:
-            bot.polling(none_stop=True, timeout=60)
+            bot.polling(none_stop=True, timeout=60, interval=0)
         except requests.exceptions.ReadTimeout:
             print("ReadTimeout: Перезапуск бота...")
             time.sleep(5)

@@ -13,7 +13,6 @@ bot = telebot.TeleBot(BOT_TOKEN)
 def send_review_to_telegram(order_id, rate, comment, review_id, categories):
     keyboard = InlineKeyboardMarkup()
 
-    # Генерация кнопок категорий
     for category in categories:
         callback_data = f"{review_id}:{category['id']}"
         keyboard.add(InlineKeyboardButton(text=category['name'], callback_data=callback_data))
@@ -25,7 +24,6 @@ def send_review_to_telegram(order_id, rate, comment, review_id, categories):
         f"💬 <b>Комментарий:</b> {comment}"
     )
 
-    # Отправка сообщения
     bot.send_message(chat_id=CHAT_ID, text=text, reply_markup=keyboard, parse_mode="HTML")
 
 
