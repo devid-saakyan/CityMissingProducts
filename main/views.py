@@ -90,16 +90,15 @@ class PostManagerReason(generics.CreateAPIView):
 class UpdateManagerReasonView(generics.UpdateAPIView):
     queryset = ManagerReason.objects.all()
     serializer_class = ManagerReasonsSerializer
-    http_method_names = ['patch']
+    http_method_names = ['post']
 
     def get_object(self):
         id = self.kwargs.get('id')
         return ManagerReason.objects.get(id=id)
 
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
+    def post(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(instance, data=request.data, partial=True)  # Частичное обновление
 
         try:
             serializer.is_valid(raise_exception=True)
