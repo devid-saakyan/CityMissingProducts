@@ -47,6 +47,17 @@ class ReasonListView(generics.ListAPIView):
         })
 
 
+class StaffCategoryListView(generics.ListAPIView):
+    serializer_class = StaffCategorySerializer
+
+    def get(self, request, *args, **kwargs):
+        queryset = StaffCategory.objects.all()
+        serializer = self.get_serializer(queryset, many=True)
+
+        return Response({'success': True,
+                         'data': serializer.data})
+
+
 class ManagerReasonsListView(generics.ListAPIView):
     serializer_class = ManagerReasonsSerializer
 
@@ -74,6 +85,28 @@ class PostManagerReason(generics.CreateAPIView):
             return Response({"success": True}, status=status.HTTP_200_OK)
         except ValidationError as e:
             return Response({'success': False, 'errors': e.detail})
+
+
+class UpdateManagerReasonView(generics.UpdateAPIView):
+    queryset = ManagerReason.objects.all()
+    serializer_class = ManagerReasonsSerializer
+    http_method_names = ['patch']
+
+    def get_object(self):
+        id = self.kwargs.get('id')
+        return ManagerReason.objects.get(id=id)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+
+        try:
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            return Response({"success": True, "data": serializer.data}, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            return Response({"success": False, "errors": e.detail}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DeleteManagerReason(generics.DestroyAPIView):

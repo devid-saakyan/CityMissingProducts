@@ -4,10 +4,12 @@ from .views import *
 
 urlpatterns = [
     path('reasons', ReasonListView.as_view(), name='reason-list'),
+    path('StaffCategory', StaffCategoryListView.as_view(), name='staff-cat-list'),
     path('ManagerReasons/<int:reason_id>', ManagerReasonsListView.as_view(), name='manager-reason-list'),
     path('ManagerReasons/delete/<int:id>', DeleteManagerReason.as_view(), name='delete-manager-reason'),
     path('ManagerReasons/deactivate/<int:id>/', DeactivateManagerReason.as_view(), name='deactivate-manager-reason'),
     path('ManagerReasons/activate/<int:id>/', ActivateManagerReason.as_view(), name='activate-manager-reason'),
+    path('ManagerReasons/Update/<int:id>/', UpdateManagerReasonView.as_view(), name='update-manager-reason'),
     path('ManagerReasons/add', PostManagerReason.as_view(), name='manager-reasons-create'),
     path('ProductReport/add', ProductReportCreateView.as_view(), name='ProductReport'),
     path('UpdateProductReport', UpdateUserReportReasonView.as_view(), name='UpdateProductReport'),

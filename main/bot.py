@@ -24,7 +24,7 @@ def get_active_chat_ids(branch):
 
 def send_report_to_telegram(sap_code_name, sap_code, price, report_id, image_url, reasons, branch, main_reason,
                             user_basket_count, stock_count, is_kilogram):
-    main_reason_dict = {'Out of stock': 'Պահեստում չկա', 'Product Quality': 'Ապրանքի որակ', 'Expire Date': 'Ժամկետ'}
+    main_reason_dict = {'Out of stock': 'Մնացորդի խնդիր', 'Product Quality': 'Որակի խնդիր', 'Expire Date': 'Ժամկետի խնդիր'}
     keyboard = InlineKeyboardMarkup()
     for reason in reasons:
         if reason['name'] == 'այլ':

@@ -7,9 +7,15 @@ class ReasonAdmin(admin.ModelAdmin):
     list_display = ('name', )
 
 
+@admin.register(models.StaffCategory)
+class StaffCategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', )
+
+
+
 @admin.register(models.ManagerReason)
 class ManagerReasonAdmin(admin.ModelAdmin):
-    list_display = ('main_reason', 'name', 'fee')
+    list_display = ('main_reason', 'name', 'fee', 'category')
 
 
 @admin.register(models.Product)
@@ -49,4 +55,4 @@ class TelegramUserStatusAdmin(admin.ModelAdmin):
 
 @admin.register(models.TelegramUser)
 class TelegramUserAdmin(admin.ModelAdmin):
-    list_display = ('user_id', 'status', 'branch', 'info', )
+    list_display = ('user_id', 'status', 'branch', 'info', 'tabel_id', )

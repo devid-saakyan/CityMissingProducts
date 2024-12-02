@@ -8,11 +8,19 @@ class Reason(models.Model):
         return self.name
 
 
+class StaffCategory(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.name
+
+
 class ManagerReason(models.Model):
     main_reason = models.ForeignKey(Reason, on_delete=models.SET_NULL, null=True, blank=True)
     name = models.CharField(max_length=50, unique=False)
     fee = models.IntegerField(null=True, blank=True)
     active = models.BooleanField(null=True, blank=True)
+    category = models.ForeignKey(StaffCategory, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -98,6 +106,7 @@ class TelegramUser(models.Model):
     status = models.ForeignKey(TelegramUserStatus, on_delete=models.SET_NULL, null=True, blank=True, )
     branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, )
     info = models.CharField(max_length=200, null=True, blank=True)
+    tabel_id = models.CharField(max_length=100, null=True, blank=True)
 
     def __str__(self):
         return self.user_id
