@@ -60,6 +60,7 @@ class StaffCategoryListView(generics.ListAPIView):
 
 class ManagerReasonsListView(generics.ListAPIView):
     serializer_class = ManagerReasonsSerializer
+    #category_name = serializers.CharField(source='category.name', read_only=True)
 
     def get_queryset(self):
         reason_id = self.kwargs.get('reason_id')
@@ -98,7 +99,7 @@ class UpdateManagerReasonView(generics.UpdateAPIView):
 
     def post(self, request, *args, **kwargs):
         instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data, partial=True)  # Частичное обновление
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
 
         try:
             serializer.is_valid(raise_exception=True)

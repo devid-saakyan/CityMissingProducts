@@ -18,10 +18,14 @@ class StaffCategorySerializer(serializers.ModelSerializer):
 
 class ManagerReasonsSerializer(serializers.ModelSerializer):
     used_count = serializers.IntegerField(read_only=True)
+    category_name = serializers.SerializerMethodField()
 
     class Meta:
         model = ManagerReason
-        fields = ['id', 'name', 'fee', 'main_reason', 'active', 'used_count', 'category']
+        fields = ['id', 'name', 'fee', 'main_reason', 'active', 'used_count', 'category', 'category_name']
+
+    def get_category_name(self, obj):
+        return obj.category.name if obj.category else None
 
 
 class DeleteManagerReasonSerializer(serializers.ModelSerializer):
