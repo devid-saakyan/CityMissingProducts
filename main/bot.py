@@ -87,6 +87,7 @@ def handle_report_reason(call):
             )
             user_states[call.message.chat.id] = report_id
             print(f"User state saved: {user_states}")
+            bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
             bot.send_message(
                 chat_id=call.message.chat.id,
                 text="Խնդրում ենք նշել մեկնաբանությունը:"

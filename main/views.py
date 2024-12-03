@@ -3,11 +3,12 @@ import threading
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, status, views
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from main.bot import send_review_to_telegram, send_report_to_telegram
 from .serializers import *
-from django.db.models import Q
+from django.db.models import Q, Count, Sum
 from dateutil.parser import isoparse
 from django.db.models import Count
 from rest_framework.exceptions import NotFound
@@ -16,8 +17,7 @@ from django.db.models import Func, F
 from django.db.models.functions import Cast
 from django.db.models import DateField
 from rest_framework.pagination import PageNumberPagination
-from django.db.models import Func
-
+import calendar
 
 
 class CustomPagination(PageNumberPagination):
@@ -440,3 +440,102 @@ class GetOrderRateStatusByBonus(generics.ListAPIView):
             return Response({"exists": False, "data": reports})
         else:
             return Response({"exists": True, "data": reports})
+
+
+@api_view(['GET'])
+def product_report_view(request):
+    try:
+        reports = (
+            ProductsReport.objects
+            .values('branch', 'manager_reason__category__name', 'main_reason__name')
+            .annotate(
+                total_count=Count('id'),
+                total_fee=Sum('fee')
+            )
+            .order_by('branch', 'manager_reason__category__name', 'main_reason__name')
+        )
+
+        data = [
+            {
+                "branch": report['branch'],
+                "staff_category_name": report['manager_reason__category__name'],
+                "main_reason": report['main_reason__name'],
+                "count": report['total_count'],
+                "sum_fee": report['total_fee']
+            }
+            for report in reports
+        ]
+
+        return Response(data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def grouped_monthly_report_view(request, month_id):
+    try:
+        current_year = datetime.now().year
+        reports = ProductsReport.objects.all()
+        filtered_reports = []
+
+        for report in reports:
+            if report.date:
+                try:
+                    report_date = datetime.strptime(report.date, "%m/%d/%Y %I:%M:%S %p")
+                    if report_date.month == int(month_id) and report_date.year == current_year:
+                        filtered_reports.append(report)
+                except ValueError:
+                    continue
+
+        if not filtered_reports:
+            return Response({"success": "False", 'data': []}, status=status.HTTP_200_OK)
+
+        grouped_data = (
+            ProductsReport.objects.filter(id__in=[r.id for r in filtered_reports])
+            .values('branch', 'manager_reason__category__name', 'main_reason__name')
+            .annotate(
+                total_count=Count('id'),
+                total_fee=Sum('fee')
+            )
+            .order_by('branch', 'manager_reason__category__name', 'main_reason__name')
+        )
+        data = [
+            {
+                "Branch": report['branch'],
+                "Staff Category Name": report['manager_reason__category__name'],
+                "Main Reason": report['main_reason__name'],
+                "Total Count": report['total_count'],
+                "Total Fee": report['total_fee'],
+            }
+            for report in grouped_data
+        ]
+
+        return Response({'success': True, 'data': data}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def get_months(request):
+    current_year = datetime.now().year
+    reports = ProductsReport.objects.all()
+    month_has_data = set()
+    for report in reports:
+        if report.date:
+            try:
+                report_date = datetime.strptime(report.date, "%m/%d/%Y %I:%M:%S %p")
+                if report_date.year == current_year:
+                    month_has_data.add(report_date.month)
+            except ValueError:
+                continue
+    months = [
+        {"id": month_id, "name": month_name, "exists": month_id in month_has_data}
+        for month_id, month_name in enumerate(calendar.month_name)
+        if month_name
+    ]
+
+    return Response({
+        "success": True,
+        "data": months
+    })
