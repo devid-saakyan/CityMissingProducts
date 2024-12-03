@@ -501,11 +501,11 @@ def grouped_monthly_report_view(request, month_id):
         )
         data = [
             {
-                "Branch": report['branch'],
-                "Staff Category Name": report['manager_reason__category__name'],
-                "Main Reason": report['main_reason__name'],
-                "Total Count": report['total_count'],
-                "Total Fee": report['total_fee'],
+                "branch": report['branch'],
+                "staff_category_Name": report['manager_reason__category__name'],
+                "main_reason": report['main_reason__name'],
+                "total_count": report['total_count'],
+                "total_fee": report['total_fee'],
             }
             for report in grouped_data
         ]
