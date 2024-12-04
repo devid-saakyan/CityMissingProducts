@@ -507,10 +507,10 @@ def grouped_monthly_report_view(request):
             if has_data:
                 month_data = {
                     "month_year": f"{datetime(current_year, month_id, 1).strftime('%B')} {current_year}",
-                    "Out of Stock": month_reasons_data["Out of stock"],
-                    "Product Quality": month_reasons_data["Product Quality"],
-                    "Expire Date": month_reasons_data["Expire Date"],
-                    "Total": {
+                    "out_of_stock": month_reasons_data["Out of stock"],
+                    "product_quality": month_reasons_data["Product Quality"],
+                    "expire_date": month_reasons_data["Expire Date"],
+                    "total": {
                         "total_count": month_total_count,
                         "total_fee": month_total_fee
                     },
