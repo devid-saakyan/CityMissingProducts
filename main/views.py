@@ -472,43 +472,52 @@ def product_report_view(request):
 
 
 @api_view(['GET'])
-def grouped_monthly_report_view(request, month_id):
+def grouped_monthly_report_view(request):
     try:
         current_year = datetime.now().year
-        reports = ProductsReport.objects.all()
-        filtered_reports = []
 
-        for report in reports:
-            if report.date:
-                try:
-                    report_date = datetime.strptime(report.date, "%m/%d/%Y %I:%M:%S %p")
-                    if report_date.month == int(month_id) and report_date.year == current_year:
-                        filtered_reports.append(report)
-                except ValueError:
-                    continue
+        main_reasons = Reason.objects.filter(name__in=["Out of stock", "Product Quality", "Expire Date"])
 
-        if not filtered_reports:
-            return Response({"success": "False", 'data': []}, status=status.HTTP_200_OK)
+        data = []
 
-        grouped_data = (
-            ProductsReport.objects.filter(id__in=[r.id for r in filtered_reports])
-            .values('branch', 'manager_reason__category__name', 'main_reason__name')
-            .annotate(
-                total_count=Count('id'),
-                total_fee=Sum('fee')
-            )
-            .order_by('branch', 'manager_reason__category__name', 'main_reason__name')
-        )
-        data = [
-            {
-                "branch": report['branch'],
-                "staff_category_Name": report['manager_reason__category__name'],
-                "main_reason": report['main_reason__name'],
-                "total_count": report['total_count'],
-                "total_fee": report['total_fee'],
-            }
-            for report in grouped_data
-        ]
+        for month_id in range(1, 13):
+            reports = ProductsReport.objects.all()
+
+            month_total_count = 0
+            month_total_fee = 0
+            month_reasons_data = {reason.name: {"total_count": 0, "total_fee": 0} for reason in main_reasons}
+            has_data = False
+            for report in reports:
+                if report.date:
+                    try:
+                        report_date = datetime.strptime(report.date, "%m/%d/%Y %I:%M:%S %p")
+                        if report_date.month == month_id and report_date.year == current_year:
+                            has_data = True
+                            manager_reason = report.manager_reason
+                            if manager_reason and manager_reason.main_reason in main_reasons:
+                                reason_name = manager_reason.main_reason.name
+                                fee = report.fee or 0
+                                month_reasons_data[reason_name]["total_count"] += 1
+                                month_reasons_data[reason_name]["total_fee"] += fee
+                                month_total_count += 1
+                                month_total_fee += fee
+                    except ValueError:
+                        continue
+
+            if has_data:
+                month_data = {
+                    "month_year": f"{datetime(current_year, month_id, 1).strftime('%B')} {current_year}",
+                    "Out of Stock": month_reasons_data["Out of stock"],
+                    "Product Quality": month_reasons_data["Product Quality"],
+                    "Expire Date": month_reasons_data["Expire Date"],
+                    "Total": {
+                        "total_count": month_total_count,
+                        "total_fee": month_total_fee
+                    },
+                    "status": 'Pending'
+                }
+
+                data.append(month_data)
 
         return Response({'success': True, 'data': data}, status=status.HTTP_200_OK)
 
@@ -532,7 +541,7 @@ def get_months(request):
     months = [
         {"id": month_id, "name": month_name, "exists": month_id in month_has_data}
         for month_id, month_name in enumerate(calendar.month_name)
-        if month_name
+        if month_name and month_id in month_has_data
     ]
 
     return Response({
