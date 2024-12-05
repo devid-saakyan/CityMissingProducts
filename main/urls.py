@@ -25,4 +25,5 @@ urlpatterns = [
     path('GetExcel', product_report_view, name='product_report'),
     path('grouped-monthly-report', grouped_monthly_report_view, name='grouped_monthly_report'),
     path('grouped-monthly-report/months', get_months, name='months'),
+    path('grouped-monthly-report/<int:report_id>/', detailed_monthly_report_view, name='detailed_monthly_report'),
 ]

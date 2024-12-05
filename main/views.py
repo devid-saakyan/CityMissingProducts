@@ -482,7 +482,6 @@ def grouped_monthly_report_view(request):
 
         for month_id in range(1, 13):
             reports = ProductsReport.objects.all()
-
             month_total_count = 0
             month_total_fee = 0
             month_reasons_data = {reason.name: {"total_count": 0, "total_fee": 0} for reason in main_reasons}
@@ -505,21 +504,134 @@ def grouped_monthly_report_view(request):
                         continue
 
             if has_data:
-                month_data = {
-                    "month_year": f"{datetime(current_year, month_id, 1).strftime('%B')} {current_year}",
-                    "out_of_stock": month_reasons_data["Out of stock"],
-                    "product_quality": month_reasons_data["Product Quality"],
-                    "expire_date": month_reasons_data["Expire Date"],
-                    "total": {
-                        "total_count": month_total_count,
-                        "total_fee": month_total_fee
+                month_year_str = f"{datetime(current_year, month_id, 1).strftime('%B')} {current_year}"
+                report_obj, created = MonthlyReport.objects.update_or_create(
+                    month_year=month_year_str,
+                    defaults={
+                        "out_of_stock": month_reasons_data["Out of stock"],
+                        "product_quality": month_reasons_data["Product Quality"],
+                        "expire_date": month_reasons_data["Expire Date"],
+                        "total": {
+                            "total_count": month_total_count,
+                            "total_fee": month_total_fee
+                        },
+                        "status": "Pending",
                     },
-                    "status": 'Pending'
-                }
+                )
 
-                data.append(month_data)
+                data.append({
+                    "id": report_obj.id,
+                    "month_year": month_year_str,
+                    "out_of_stock": report_obj.out_of_stock,
+                    "product_quality": report_obj.product_quality,
+                    "expire_date": report_obj.expire_date,
+                    "total": report_obj.total,
+                    "status": report_obj.status,
+                })
 
         return Response({'success': True, 'data': data}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def detailed_monthly_report_view(request, report_id):
+    try:
+        # Получаем информацию о месяце и годе из предыдущего отчета
+        monthly_report = MonthlyReport.objects.filter(id=report_id).first()
+        if not monthly_report:
+            return Response({"error": "Report not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Извлекаем месяц и год
+        month_year = monthly_report.month_year
+        current_year = int(month_year.split()[-1])
+        month_name = month_year.split()[0]
+        month_id = datetime.strptime(month_name, "%B").month
+
+        # Получаем записи ProductsReport за указанный месяц и год
+        reports = ProductsReport.objects.all()
+        filtered_reports = []
+        for report in reports:
+            if report.date:
+                try:
+                    report_date = datetime.strptime(report.date, "%m/%d/%Y %I:%M:%S %p")
+                    if report_date.month == month_id and report_date.year == current_year:
+                        filtered_reports.append(report)
+                except ValueError:
+                    continue
+
+        if not filtered_reports:
+            return Response({
+                "success": True,
+                "month_year": month_year,
+                "details": []
+            }, status=status.HTTP_200_OK)
+
+        grouped_data = (
+            ProductsReport.objects.filter(id__in=[r.id for r in filtered_reports])
+            .annotate(
+                date_only=models.Func(
+                    models.F('date'),
+                    function='SUBSTRING',
+                    template='%(function)s(%(expressions)s, 1, 10)'  # SQL: SUBSTRING(date, 1, 10)
+                )
+            )
+            .values('date_only', 'branch')
+            .annotate(
+                out_of_stock_count=Count('id', filter=models.Q(manager_reason__main_reason__name="Out of stock")),
+                out_of_stock_fee=Sum('fee', filter=models.Q(manager_reason__main_reason__name="Out of stock")),
+                product_quality_count=Count('id', filter=models.Q(manager_reason__main_reason__name="Product Quality")),
+                product_quality_fee=Sum('fee', filter=models.Q(manager_reason__main_reason__name="Product Quality")),
+                expire_date_count=Count('id', filter=models.Q(manager_reason__main_reason__name="Expire Date")),
+                expire_date_fee=Sum('fee', filter=models.Q(manager_reason__main_reason__name="Expire Date"))
+            )
+        )
+
+        detailed_report = []
+        for row in grouped_data:
+            report_date = row['date_only']
+            branch = row['branch']
+            out_of_stock = {
+                "total_count": row['out_of_stock_count'] or 0,
+                "total_fee": row['out_of_stock_fee'] or 0
+            }
+            product_quality = {
+                "total_count": row['product_quality_count'] or 0,
+                "total_fee": row['product_quality_fee'] or 0
+            }
+            expire_date = {
+                "total_count": row['expire_date_count'] or 0,
+                "total_fee": row['expire_date_fee'] or 0
+            }
+            total = {
+                "total_count": (
+                        out_of_stock["total_count"]
+                        + product_quality["total_count"]
+                        + expire_date["total_count"]
+                ),
+                "total_fee": (
+                        out_of_stock["total_fee"]
+                        + product_quality["total_fee"]
+                        + expire_date["total_fee"]
+                )
+            }
+
+            detailed_report.append({
+                "date": report_date,
+                "branch": branch,
+                "out_of_stock": out_of_stock,
+                "product_quality": product_quality,
+                "expire_date": expire_date,
+                "total": total,
+                "tabel_id": None
+            })
+
+        return Response({
+            "success": True,
+            "month_year": month_year,
+            "details": detailed_report
+        }, status=status.HTTP_200_OK)
 
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
