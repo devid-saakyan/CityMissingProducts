@@ -538,18 +538,15 @@ def grouped_monthly_report_view(request):
 @api_view(['GET'])
 def detailed_monthly_report_view(request, report_id):
     try:
-        # Получаем информацию о месяце и годе из предыдущего отчета
         monthly_report = MonthlyReport.objects.filter(id=report_id).first()
         if not monthly_report:
             return Response({"error": "Report not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Извлекаем месяц и год
         month_year = monthly_report.month_year
         current_year = int(month_year.split()[-1])
         month_name = month_year.split()[0]
         month_id = datetime.strptime(month_name, "%B").month
 
-        # Получаем записи ProductsReport за указанный месяц и год
         reports = ProductsReport.objects.all()
         filtered_reports = []
         for report in reports:
@@ -570,14 +567,7 @@ def detailed_monthly_report_view(request, report_id):
 
         grouped_data = (
             ProductsReport.objects.filter(id__in=[r.id for r in filtered_reports])
-            .annotate(
-                date_only=models.Func(
-                    models.F('date'),
-                    function='SUBSTRING',
-                    template='%(function)s(%(expressions)s, 1, 10)'  # SQL: SUBSTRING(date, 1, 10)
-                )
-            )
-            .values('date_only', 'branch')
+            .values('branch', 'manager_reason__category__name')
             .annotate(
                 out_of_stock_count=Count('id', filter=models.Q(manager_reason__main_reason__name="Out of stock")),
                 out_of_stock_fee=Sum('fee', filter=models.Q(manager_reason__main_reason__name="Out of stock")),
@@ -590,8 +580,8 @@ def detailed_monthly_report_view(request, report_id):
 
         detailed_report = []
         for row in grouped_data:
-            report_date = row['date_only']
             branch = row['branch']
+            staff_category = row['manager_reason__category__name']
             out_of_stock = {
                 "total_count": row['out_of_stock_count'] or 0,
                 "total_fee": row['out_of_stock_fee'] or 0
@@ -618,8 +608,9 @@ def detailed_monthly_report_view(request, report_id):
             }
 
             detailed_report.append({
-                "date": report_date,
                 "branch": branch,
+                "staff_category": staff_category,
+                "name": None,
                 "out_of_stock": out_of_stock,
                 "product_quality": product_quality,
                 "expire_date": expire_date,
