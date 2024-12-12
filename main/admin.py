@@ -56,3 +56,8 @@ class TelegramUserStatusAdmin(admin.ModelAdmin):
 @admin.register(models.TelegramUser)
 class TelegramUserAdmin(admin.ModelAdmin):
     list_display = ('user_id', 'status', 'branch', 'info', 'tabel_id', )
+
+
+@admin.register(models.MonthlyReport)
+class MonthReportAdmin(admin.ModelAdmin):
+    list_display = ('month_year', 'total', 'status', )
