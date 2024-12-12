@@ -221,7 +221,7 @@ class UpdateUserReportReasonView(views.APIView):
                 return Response({"success": True, "message": "reason updated successfully."},
                                 status=status.HTTP_200_OK)
             else:
-                return Response({"success": False, "message": "manager reason already existsa"},
+                return Response({"success": False, "message": "manager reason already exists"},
                                 status=status.HTTP_304_NOT_MODIFIED)
         except (ProductsReport.DoesNotExist, ManagerReason.DoesNotExist):
             return Response({"success": False, "message": "Invalid report or reason ID."},
