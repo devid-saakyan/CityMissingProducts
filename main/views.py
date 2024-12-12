@@ -214,12 +214,15 @@ class UpdateUserReportReasonView(views.APIView):
         try:
             report = ProductsReport.objects.get(id=report_id)
             reason = ManagerReason.objects.get(id=reason_id)
-            report.manager_reason = reason
-            report.fee = reason.fee
-            #report.resolved = True
-            report.save()
-            return Response({"success": True, "message": "reason updated successfully."},
-                            status=status.HTTP_200_OK)
+            if report.manager_reason is None:
+                report.manager_reason = reason
+                report.fee = reason.fee
+                report.save()
+                return Response({"success": True, "message": "reason updated successfully."},
+                                status=status.HTTP_200_OK)
+            else:
+                return Response({"success": False, "message": "manager reason already existsa"},
+                                status=status.HTTP_304_NOT_MODIFIED)
         except (ProductsReport.DoesNotExist, ManagerReason.DoesNotExist):
             return Response({"success": False, "message": "Invalid report or reason ID."},
                             status=status.HTTP_400_BAD_REQUEST)
@@ -475,14 +478,10 @@ def product_report_view(request):
 def grouped_monthly_report_view(request):
     try:
         current_year = datetime.now().year
-
         main_reasons = Reason.objects.filter(name__in=["Out of stock", "Product Quality", "Expire Date"])
-
         data = []
-
         for month_id in range(1, 13):
             reports = ProductsReport.objects.all()
-
             month_total_count = 0
             month_total_fee = 0
             month_reasons_data = {reason.name: {"total_count": 0, "total_fee": 0} for reason in main_reasons}
@@ -541,8 +540,7 @@ def get_months(request):
     months = [
         {"id": month_id, "name": month_name, "exists": month_id in month_has_data}
         for month_id, month_name in enumerate(calendar.month_name)
-        if month_name and month_id in month_has_data
-    ]
+        if month_name and month_id in month_has_data]
 
     return Response({
         "success": True,

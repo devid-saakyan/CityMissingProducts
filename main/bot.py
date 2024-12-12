@@ -1,4 +1,6 @@
 import os
+import time
+
 import django
 import telebot
 import requests
@@ -105,9 +107,16 @@ def handle_report_reason(call):
                     text=f"Վերադարձի պատճառը թարմացվեց:\nԸնտրված պատճառը: {report.manager_reason}"
                 )
                 bot.answer_callback_query(call.id, "Վերադարձի պատճառը թարմացվեց")
+            elif response.status_code == 304:
+                bot.edit_message_text(
+                    chat_id=call.message.chat.id,
+                    message_id=call.message.message_id,
+                    text=f"Պատճառն արդեն թարմացվել է: "
+                )
             else:
                 bot.answer_callback_query(call.id, "Պատճառի թարմացումը ձախողվեց։", show_alert=True)
     except Exception as e:
+        print(e)
         bot.answer_callback_query(call.id, f"Սխալ է տեղի ունեցել: {e}", show_alert=True)
 
 
@@ -128,6 +137,10 @@ def handle_comment(message):
             chat_id=message.chat.id,
             text=f"Մեկնաբանությունը հաջողությամբ ավելացված է:\n{comment}"
         )
+        try:
+            bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
+        except Exception as e:
+            print(f"Error deleting message: {e}")
     except Exception as e:
         print(f"Error in handle_comment: {e}")
         bot.send_message(chat_id=message.chat.id, text=f"Системная ошибка: {e}")
