@@ -8,8 +8,8 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from main.models import TelegramUser, ProductsReport
 from django.db.models import Q
 
-BOT_TOKEN = '7933060895:AAFBfZjAYwkiNKeF138INpEI3_wCLEOziQ4' #test
-#BOT_TOKEN = "7946030117:AAG_r4--uVvaLTHNKLlrIuIonaTbMr_W2Nk"
+#BOT_TOKEN = '7933060895:AAFBfZjAYwkiNKeF138INpEI3_wCLEOziQ4' #test
+BOT_TOKEN = "7946030117:AAG_r4--uVvaLTHNKLlrIuIonaTbMr_W2Nk"
 PRODUCT_REPORT_API_URL = "http://127.0.0.1:8014/api/UpdateProductReport"
 REVIEW_CATEGORY_API_URL = "http://127.0.0.1:8014/api/UpdateReviewCategory"
 
