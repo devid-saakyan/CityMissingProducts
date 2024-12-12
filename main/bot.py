@@ -122,7 +122,7 @@ def handle_report_reason(call):
                 bot.answer_callback_query(call.id, "Պատճառի թարմացումը ձախողվեց։", show_alert=True)
     except Exception as e:
         print(e)
-        bot.answer_callback_query(call.id, f"Սխալ է տեղի ունեցել: {e}", show_alert=True)
+        bot.answer_callback_query(call.id, f"Սխալ է տեղի ունեցել:", show_alert=True)
 
 
 @bot.message_handler(func=lambda message: message.chat.id in user_states)
