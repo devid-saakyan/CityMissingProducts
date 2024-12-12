@@ -8,10 +8,10 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from main.models import TelegramUser, ProductsReport
 from django.db.models import Q
 
-#BOT_TOKEN = '7933060895:AAFBfZjAYwkiNKeF138INpEI3_wCLEOziQ4' #test
-BOT_TOKEN = "7946030117:AAG_r4--uVvaLTHNKLlrIuIonaTbMr_W2Nk"
-PRODUCT_REPORT_API_URL = "http://127.0.0.1:8014/api/UpdateProductReport"
-REVIEW_CATEGORY_API_URL = "http://127.0.0.1:8014/api/UpdateReviewCategory"
+BOT_TOKEN = '7933060895:AAFBfZjAYwkiNKeF138INpEI3_wCLEOziQ4' #test
+#BOT_TOKEN = "7946030117:AAG_r4--uVvaLTHNKLlrIuIonaTbMr_W2Nk"
+PRODUCT_REPORT_API_URL = "http://127.0.0.1:8000/api/UpdateProductReport"
+REVIEW_CATEGORY_API_URL = "http://127.0.0.1:8000/api/UpdateReviewCategory"
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
@@ -87,13 +87,18 @@ def handle_report_reason(call):
                 PRODUCT_REPORT_API_URL,
                 json={"report_id": int(report_id), "reason_id": int(reason_id)}
             )
+
             user_states[call.message.chat.id] = report_id
             print(f"User state saved: {user_states}")
             bot.delete_message(chat_id=call.message.chat.id, message_id=call.message.message_id)
-            bot.send_message(
-                chat_id=call.message.chat.id,
-                text="Խնդրում ենք նշել մեկնաբանությունը:"
-            )
+            if response.status_code == 200:
+                bot.send_message(
+                    chat_id=call.message.chat.id,
+                    text="Խնդրում ենք նշել մեկնաբանությունը:")
+            elif response.status_code == 304:
+                bot.send_message(
+                    chat_id=call.message.chat.id,
+                    text="Պատճառն արդեն թարմացվել է: ")
         else:
             response = requests.post(
                 PRODUCT_REPORT_API_URL,
