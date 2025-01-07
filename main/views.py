@@ -156,47 +156,47 @@ class ProductReportCreateView(generics.CreateAPIView):
         ]
     )
     def create(self, request, *args, **kwargs):
-        # sap_code = request.data.get('sap_code')
-        # category_sap_code = request.data.get('category_sap_code')
-        # sap_code_name = request.data.get('sap_code_name')
-        # category_name = request.data.get('category_sap_code_name')
-        #
-        # product, _ = Product.objects.get_or_create(
-        #     sap_code=sap_code,
-        #     defaults={'name': sap_code_name}
-        # )
-        # category, _ = Category.objects.get_or_create(
-        #     category_sap_code=category_sap_code,
-        #     defaults={'name': category_name}
-        # )
-        # data = request.data.copy()
-        # data['sap_code'] = product.sap_code
-        # data['category_sap_code'] = category.category_sap_code
-        # data['sap_code_name'] = sap_code_name
-        # data['category_sap_code_name'] = category_name
-        # serializer = self.get_serializer(data=data)
-        # serializer.is_valid(raise_exception=True)
-        # reasons = list(ManagerReason.objects.filter(main_reason=data['main_reason']).values('id', 'name'))
-        # print(reasons)
-        # self.perform_create(serializer)
-        # report = serializer.save()
-        # print(report.main_reason)
-        # print(report.is_kilogram)
-        # threading.Thread(
-        #     target=send_report_to_telegram,
-        #     args=(report.sap_code_name,
-        #           report.sap_code,
-        #           report.unit_price,
-        #           report.id,
-        #           report.image,
-        #           reasons,
-        #           report.branch,
-        #           report.main_reason,
-        #           report.user_basket_count / 1000 if report.is_kilogram is True else report.user_basket_count,
-        #           report.stock_count / 1000 if report.is_kilogram is True else report.stock_count,
-        #           report.is_kilogram),
-        #     daemon=True
-        # ).start()
+        sap_code = request.data.get('sap_code')
+        category_sap_code = request.data.get('category_sap_code')
+        sap_code_name = request.data.get('sap_code_name')
+        category_name = request.data.get('category_sap_code_name')
+
+        product, _ = Product.objects.get_or_create(
+            sap_code=sap_code,
+            defaults={'name': sap_code_name}
+        )
+        category, _ = Category.objects.get_or_create(
+            category_sap_code=category_sap_code,
+            defaults={'name': category_name}
+        )
+        data = request.data.copy()
+        data['sap_code'] = product.sap_code
+        data['category_sap_code'] = category.category_sap_code
+        data['sap_code_name'] = sap_code_name
+        data['category_sap_code_name'] = category_name
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        reasons = list(ManagerReason.objects.filter(main_reason=data['main_reason']).values('id', 'name'))
+        print(reasons)
+        self.perform_create(serializer)
+        report = serializer.save()
+        print(report.main_reason)
+        print(report.is_kilogram)
+        threading.Thread(
+            target=send_report_to_telegram,
+            args=(report.sap_code_name,
+                  report.sap_code,
+                  report.unit_price,
+                  report.id,
+                  report.image,
+                  reasons,
+                  report.branch,
+                  report.main_reason,
+                  report.user_basket_count / 1000 if report.is_kilogram is True else report.user_basket_count,
+                  report.stock_count / 1000 if report.is_kilogram is True else report.stock_count,
+                  report.is_kilogram),
+            daemon=True
+        ).start()
         return Response({'success': True, 'data': 'no logic'}, status=status.HTTP_200_OK)
 
 
