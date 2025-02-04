@@ -38,9 +38,14 @@ class ReviewsCategoryAdmin(admin.ModelAdmin):
     list_display = ('name', )
 
 
+@admin.register(models.ReviewsCategoryAnswer)
+class ReviewsCategoryAnswerAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name', 'main_category', )
+
+
 @admin.register(models.UserReview)
 class UserReviewAdmin(admin.ModelAdmin):
-    list_display = ('order_id', 'rate', 'comment')
+    list_display = ('id', 'order_id', 'rate', 'comment')
 
 
 @admin.register(models.Branch)

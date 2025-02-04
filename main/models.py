@@ -74,6 +74,15 @@ class ReviewsCategory(models.Model):
         return self.name
 
 
+class ReviewsCategoryAnswer(models.Model):
+    main_category = models.ForeignKey(ReviewsCategory, on_delete=models.SET_NULL, null=True, blank=True)
+    name = models.CharField(max_length=50, null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+
 class Branch(models.Model):
     name = models.CharField(max_length=50)
 
@@ -85,10 +94,14 @@ class UserReview(models.Model):
     order_id = models.CharField(max_length=50, verbose_name="Order ID")
     user_bonus = models.CharField(max_length=100)
     rate = models.PositiveSmallIntegerField(verbose_name="Rating (1-5)")
+    rate_date = models.CharField(max_length=100, null=True, blank=True)
     branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True,)
     comment = models.TextField(verbose_name="Complaint Comment")
     category = models.ForeignKey(ReviewsCategory, on_delete=models.SET_NULL, null=True, blank=True, )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At")
+    category_answer = models.ForeignKey(ReviewsCategoryAnswer, on_delete=models.SET_NULL, null=True, blank=True)
+    category_comment = models.CharField(max_length=150, null=True, blank=True)
+    category_answer_comment = models.CharField(max_length=150, null=True, blank=True)
 
     def __str__(self):
         return f"Complaint for Order {self.order_id} (Rate: {self.rate})"

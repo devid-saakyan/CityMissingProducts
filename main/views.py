@@ -128,7 +128,7 @@ class ActivateManagerReason(generics.UpdateAPIView):
     def post(self, request, *args, **kwargs):
         instance = self.get_object()
         instance.active = True
-        instance.save(update_fields=['active'])  # Сохраняем только поле active
+        instance.save(update_fields=['active'])
         return Response({'success': True})
 
 
@@ -393,7 +393,7 @@ class UserReviewCreateView(generics.CreateAPIView):
 
         threading.Thread(
             target=send_review_to_telegram,
-            args=(review.order_id, review.rate, review.comment, review.id, categories, branch_name),
+            args=(review.order_id, review.rate, review.comment, review.id, categories, branch_name, review.rate_date),
             daemon=True
         ).start()
 
@@ -421,6 +421,30 @@ class UpdateUserReviewCategoryView(views.APIView):
             return Response({"success": False, "message": "Invalid review or category ID."}, status=status.HTTP_400_BAD_REQUEST)
 
 
+class UpdateUserReviewCategoryAnswerView(views.APIView):
+    @swagger_auto_schema(
+        request_body=UpdateUserReviewCategoryAnswerSerializer,
+        responses={
+            200: "Category answer updated successfully.",
+            400: "Invalid review or category answer ID."
+        }
+    )
+    def post(self, request, *args, **kwargs):
+        review_id = request.data.get("review_id")
+        category_answer_id = request.data.get("category_answer_id")
+
+        try:
+            review = UserReview.objects.get(id=review_id)
+            category_answer = ReviewsCategoryAnswer.objects.get(id=category_answer_id)
+            review.category_answer = category_answer
+            review.save()
+            return Response({"success": True, "message": "Category answer updated successfully."},
+                            status=status.HTTP_200_OK)
+        except (UserReview.DoesNotExist, ReviewsCategoryAnswer.DoesNotExist):
+            return Response({"success": False, "message": "Invalid review or category answer ID."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+
 class GetOrderRateStatusByOrderId(generics.ListAPIView):
     serializer_class = UserReviewSerializer
 
@@ -431,6 +455,7 @@ class GetOrderRateStatusByOrderId(generics.ListAPIView):
             return Response({"exists": False, "data": reports})
         else:
             return Response({"exists": True, "data": reports})
+
 
 
 class GetOrderRateStatusByBonus(generics.ListAPIView):

@@ -59,12 +59,12 @@ class ProductReportIdSerializer(serializers.Serializer):
 
 
 class UserReviewSerializer(serializers.ModelSerializer):
-    branch_name = serializers.CharField(required=True)
+    #branch_name = serializers.CharField(required=True)
 
     class Meta:
         model = UserReview
-        fields = ['id', 'order_id', 'user_bonus', 'rate', 'comment', 'created_at', 'branch_name']
-        read_only_fields = ['id', 'created_at', 'branch_name']
+        fields = ['id', 'order_id', 'user_bonus', 'rate', 'rate_date', 'comment', 'created_at', 'branch']
+        read_only_fields = ['id', 'created_at']
 
     def create(self, validated_data):
         branch_name = validated_data.pop('branch_name', None)
@@ -80,6 +80,11 @@ class UserReviewSerializer(serializers.ModelSerializer):
 class UpdateUserReviewCategorySerializer(serializers.Serializer):
     review_id = serializers.IntegerField()
     category_id = serializers.IntegerField()
+
+
+class UpdateUserReviewCategoryAnswerSerializer(serializers.Serializer):
+    review_id = serializers.IntegerField()
+    category_answer_id = serializers.IntegerField()
 
 
 class UpdateReportReasonSerializer(serializers.Serializer):
