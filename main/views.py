@@ -393,7 +393,7 @@ class UserReviewCreateView(generics.CreateAPIView):
 
         threading.Thread(
             target=send_review_to_telegram,
-            args=(review.order_id, review.rate, review.comment, review.id, categories, branch_name, review.rate_date),
+            args=(review.order_id, review.rate, review.comment, review.id, categories, branch_name, review.order_date),
             daemon=True
         ).start()
 

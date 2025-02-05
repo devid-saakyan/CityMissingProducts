@@ -94,7 +94,7 @@ class UserReview(models.Model):
     order_id = models.CharField(max_length=50, verbose_name="Order ID")
     user_bonus = models.CharField(max_length=100)
     rate = models.PositiveSmallIntegerField(verbose_name="Rating (1-5)")
-    rate_date = models.CharField(max_length=100, null=True, blank=True)
+    order_date = models.CharField(max_length=100, null=True, blank=True)
     branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True,)
     comment = models.TextField(verbose_name="Complaint Comment")
     category = models.ForeignKey(ReviewsCategory, on_delete=models.SET_NULL, null=True, blank=True, )

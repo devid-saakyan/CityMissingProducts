@@ -1,7 +1,7 @@
 import telebot
 import requests
 from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
-from main.models import TelegramUser, ProductsReport, UserReview, ReviewsCategoryAnswer
+from main.models import TelegramUser, ProductsReport, UserReview, ReviewsCategoryAnswer, ReviewsCategory
 from django.db.models import Q
 
 #BOT_TOKEN = '7933060895:AAFBfZjAYwkiNKeF138INpEI3_wCLEOziQ4'  # test
@@ -27,9 +27,9 @@ def get_active_chat_ids_for_review():
         TelegramUser.objects.filter(Q(status__name='Operator')).values_list("user_id", flat=True))
 
 
-def get_active_chat_ids_for_review_answer():
+def get_active_chat_ids_for_review_answer(branch):
     return list(
-        TelegramUser.objects.filter(Q(status__name='Operator2')).values_list("user_id", flat=True))
+        TelegramUser.objects.filter(Q(status__name='Operator2') & Q(branch__name=branch)).values_list("user_id", flat=True))
 
 
 def send_report_to_telegram(sap_code_name, sap_code, price, report_id, image_url, reasons, branch, main_reason,
@@ -64,7 +64,7 @@ def send_report_to_telegram(sap_code_name, sap_code, price, report_id, image_url
             print(f'i cant send a message to user_id {chat_id}')
 
 
-def send_review_to_telegram(order_id, rate, comment, review_id, categories, branch, rate_date):
+def send_review_to_telegram(order_id, rate, comment, review_id, categories, branch, order_date):
     keyboard = InlineKeyboardMarkup()
     for category in categories:
         callback_data = f"review:{review_id}:{category['id']}"
@@ -76,7 +76,7 @@ def send_review_to_telegram(order_id, rate, comment, review_id, categories, bran
         f"📦 <b>Պատվերի №:</b> {order_id}\n"
         f"⭐ <b>Գնահատական:</b> {rate}\n"
         f"💬 <b>Մեկնաբանություն:</b> {comment}\n"
-        f"📅 <b>Գնահատականի ամսաթիվը:</b> {rate_date}"
+        f"📅 <b>Պատվերի ամսաթիվը:</b> {order_date}"
     )
 
     #chat_ids = get_active_chat_ids(branch)
@@ -184,18 +184,19 @@ def handle_review_category(call):
             REVIEW_CATEGORY_API_URL,
             json={"review_id": int(review_id), "category_id": int(category_id)}
         )
-
+        type = ReviewsCategory.objects.get(id=int(category_id))
         text = (
-            f"📢 <b>Նոր գնահատական</b>\n\n"
+            f"📢 <b>Նոր գնահատական: {type.name}</b>\n\n"
             f"🏬 <b>Մասնաճյուղ:</b> {review.branch}\n"
             f"📦 <b>Պատվերի №:</b> {review.order_id}\n"
             f"⭐ <b>Գնահատական:</b> {review.rate}\n"
             f"💬 <b>Մեկնաբանություն:</b> {review.comment}\n"
-            f"📅 <b>Գնահատականի ամսաթիվը:</b> {review.rate_date}"
+            f"📅 <b>Պատվերի ամսաթիվը:</b> {review.order_date}"
         )
 
         bot.delete_message(call.message.chat.id, call.message.message_id)
-        chat_ids = get_active_chat_ids_for_review_answer()
+        chat_ids = get_active_chat_ids_for_review_answer(review.branch)
+        print(chat_ids)
         for chat_id in chat_ids:
             try:
                 bot.send_message(chat_id=chat_id, text=text, reply_markup=keyboard, parse_mode="HTML")
