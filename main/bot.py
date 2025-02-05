@@ -4,11 +4,11 @@ from telebot.types import InlineKeyboardButton, InlineKeyboardMarkup
 from main.models import TelegramUser, ProductsReport, UserReview, ReviewsCategoryAnswer
 from django.db.models import Q
 
-BOT_TOKEN = '7933060895:AAFBfZjAYwkiNKeF138INpEI3_wCLEOziQ4' #test
-#BOT_TOKEN = "7946030117:AAG_r4--uVvaLTHNKLlrIuIonaTbMr_W2Nk"
-PRODUCT_REPORT_API_URL = "http://127.0.0.1:8012/api/UpdateProductReport"
-REVIEW_CATEGORY_API_URL = "http://127.0.0.1:8012/api/UpdateReview/UpdateReviewCategory"
-REVIEW_CATEGORY_ANSWER_API_URL = "http://127.0.0.1:8012/api/UpdateReview/UpdateReviewCategoryAnswer"
+#BOT_TOKEN = '7933060895:AAFBfZjAYwkiNKeF138INpEI3_wCLEOziQ4'  # test
+BOT_TOKEN = "7946030117:AAG_r4--uVvaLTHNKLlrIuIonaTbMr_W2Nk"
+PRODUCT_REPORT_API_URL = "http://127.0.0.1:8014/api/UpdateProductReport"
+REVIEW_CATEGORY_API_URL = "http://127.0.0.1:8014/api/UpdateReview/UpdateReviewCategory"
+REVIEW_CATEGORY_ANSWER_API_URL = "http://127.0.0.1:8014/api/UpdateReview/UpdateReviewCategoryAnswer"
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
@@ -18,12 +18,24 @@ user_states = {}
 def get_active_chat_ids(branch):
     if branch:
         print(branch)
-        return list(TelegramUser.objects.filter(Q(branch__name=branch) | Q(status__name='Admin')).values_list("user_id", flat=True))
+        return list(TelegramUser.objects.filter(Q(branch__name=branch) | Q(status__name='Admin')).values_list("user_id",
+                                                                                                              flat=True))
+
+
+def get_active_chat_ids_for_review():
+    return list(
+        TelegramUser.objects.filter(Q(status__name='Operator')).values_list("user_id", flat=True))
+
+
+def get_active_chat_ids_for_review_answer():
+    return list(
+        TelegramUser.objects.filter(Q(status__name='Operator2')).values_list("user_id", flat=True))
 
 
 def send_report_to_telegram(sap_code_name, sap_code, price, report_id, image_url, reasons, branch, main_reason,
                             user_basket_count, stock_count, is_kilogram):
-    main_reason_dict = {'Out of stock': 'Մնացորդի խնդիր', 'Product Quality': 'Որակի խնդիր', 'Expire Date': 'Ժամկետի խնդիր'}
+    main_reason_dict = {'Out of stock': 'Մնացորդի խնդիր', 'Product Quality': 'Որակի խնդիր',
+                        'Expire Date': 'Ժամկետի խնդիր'}
     keyboard = InlineKeyboardMarkup()
     for reason in reasons:
         if reason['name'] == 'այլ':
@@ -67,7 +79,9 @@ def send_review_to_telegram(order_id, rate, comment, review_id, categories, bran
         f"📅 <b>Գնահատականի ամսաթիվը:</b> {rate_date}"
     )
 
-    chat_ids = get_active_chat_ids(branch)
+    #chat_ids = get_active_chat_ids(branch)
+    chat_ids = get_active_chat_ids_for_review()
+    print('ids', chat_ids)
     for chat_id in chat_ids:
         try:
             bot.send_message(chat_id=chat_id, text=text, reply_markup=keyboard, parse_mode="HTML")
@@ -173,16 +187,21 @@ def handle_review_category(call):
 
         text = (
             f"📢 <b>Նոր գնահատական</b>\n\n"
-        f"🏬 <b>Մասնաճյուղ:</b> {review.branch}\n"
-        f"📦 <b>Պատվերի №:</b> {review.order_id}\n"
-        f"⭐ <b>Գնահատական:</b> {review.rate}\n"
-        f"💬 <b>Մեկնաբանություն:</b> {review.comment}\n"
-        f"📅 <b>Գնահատականի ամսաթիվը:</b> {review.rate_date}"
+            f"🏬 <b>Մասնաճյուղ:</b> {review.branch}\n"
+            f"📦 <b>Պատվերի №:</b> {review.order_id}\n"
+            f"⭐ <b>Գնահատական:</b> {review.rate}\n"
+            f"💬 <b>Մեկնաբանություն:</b> {review.comment}\n"
+            f"📅 <b>Գնահատականի ամսաթիվը:</b> {review.rate_date}"
         )
 
         bot.delete_message(call.message.chat.id, call.message.message_id)
-
-        bot.send_message(call.message.chat.id, text, reply_markup=keyboard, parse_mode="HTML")
+        chat_ids = get_active_chat_ids_for_review_answer()
+        for chat_id in chat_ids:
+            try:
+                bot.send_message(chat_id=chat_id, text=text, reply_markup=keyboard, parse_mode="HTML")
+            except:
+                print(f'i cant send a message to user_id {chat_id}')
+        #bot.send_message(call.message.chat.id, text, reply_markup=keyboard, parse_mode="HTML")
 
     except UserReview.DoesNotExist:
         bot.answer_callback_query(call.id, "Отзыв не найден.", show_alert=True)
@@ -217,8 +236,6 @@ def handle_review_answer(call):
         bot.answer_callback_query(call.id, "Ответ не найден.", show_alert=True)
     except Exception as e:
         bot.answer_callback_query(call.id, f"Ошибка: {str(e)}", show_alert=True)
-
-
 
 # import telebot
 #
